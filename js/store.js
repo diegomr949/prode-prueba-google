@@ -63,6 +63,7 @@ const Auth = {
     logout() {
         ApiAuth.logout(); Store.clear();
         State.partidos = []; State.misPreds = {}; State.pending = {}; State.ranking = [];
+        document.getElementById('fab').style.display = 'none';
         document.getElementById('topbar').style.display = 'none';
         document.getElementById('mobile-nav').style.display = 'none';
         document.getElementById('main').style.display = 'none';
