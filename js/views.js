@@ -253,7 +253,7 @@ const Views = {
             <div style="padding:18px 20px">
               <ul style="list-style:none;display:flex;flex-direction:column;gap:10px">
                 ${[
-                ['✅','Puede participar todo el personal matriculado y colaboradores del CPCE Mendoza.'],
+                ['✅','Puede participar todo el personal del CPCE Mendoza.'],
                 ['✅','El registro es gratuito y de uso exclusivo interno.'],
                 ['✅','Cada participante tiene una cuenta individual e intransferible.'],
                 ['✅','La participación es voluntaria.'],
