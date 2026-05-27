@@ -9,16 +9,37 @@ const API_BASE = _meta ? _meta.getAttribute('content').replace(/\/$/, '') : '';
 if (!API_BASE) console.error('[API] ⚠ Falta <meta name="api-base"> en el HTML.');
 const TIMEOUT_MS = 15_000;
 
-async function http(route, method = 'GET', body = null) {
+/* ── HTTP helper adaptado para GAS (Rutas a prueba de balas) ── */
+async function http(path, method = 'GET', body = null) {
     const token = localStorage.getItem('PRODE_TOKEN');
     
-    let url = API_BASE + '?route=' + encodeURIComponent(route);
+    // 1. Limpiamos la ruta (quitamos la barra '/' inicial si existe)
+    let cleanPath = path;
+    if (cleanPath.startsWith('/')) {
+        cleanPath = cleanPath.substring(1);
+    }
+
+    // 2. Separamos la ruta base de los parámetros (soportando tanto '?' como '&')
+    let route = cleanPath;
+    let queryParams = '';
+    
+    if (cleanPath.includes('?')) {
+        const parts = cleanPath.split('?');
+        route = parts[0]; 
+        queryParams = '&' + parts[1]; // Transformamos el ? en & para Google
+    } else if (cleanPath.includes('&')) {
+        const parts = cleanPath.split('&');
+        route = parts[0];
+        queryParams = '&' + parts.slice(1).join('&');
+    }
+    
+    // 3. Armamos la URL perfecta para Google
+    let url = API_BASE + '?route=' + encodeURIComponent(route) + queryParams;
     if (token) url += '&token=' + encodeURIComponent(token);
 
     const ctrl = new AbortController();
     const tid  = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
 
-    // En GAS encapsulamos todo como POST para enviar payload complejo
     const fetchMethod = method === 'GET' ? 'GET' : 'POST';
     let payload = null;
     
@@ -43,7 +64,9 @@ async function http(route, method = 'GET', body = null) {
             Toast.info('Tu sesión expiró. Iniciá sesión nuevamente.');
             return null;
         }
+
         return { ok: !data.error, status: data.code || 200, data: data.data };
+
     } catch (e) {
         clearTimeout(tid);
         if (e.name === 'AbortError') Toast.err('El servidor tardó demasiado.');
