@@ -1337,10 +1337,13 @@ const Views = {
 
             // Traer EN_JUEGO primero, sino PENDIENTE
             let r  = await ApiPartidos.getAll('EN_JUEGO');
-            let ps = r?.data || [];
+            // Validamos explícitamente que r.data sea un Array
+            let ps = (r?.ok && Array.isArray(r?.data)) ? r.data : [];
+            
             if (!ps.length) {
                 r  = await ApiPartidos.getAll('PENDIENTE');
-                ps = (r?.data || []).slice(0, 24);
+                let pendingData = (r?.ok && Array.isArray(r?.data)) ? r.data : [];
+                ps = pendingData.slice(0, 24);
             }
 
             if (!ps.length) {
