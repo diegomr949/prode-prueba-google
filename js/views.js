@@ -698,300 +698,155 @@ const Views = {
        SELECCIONES — Estadísticas y jugadores
     ═══════════════════════════════════════════════ */
     Selecciones: {
-        all: [],
-        selected: null,
+            all: [],
+            selected: null,
 
-        async load() {
-            document.getElementById('sel-out').innerHTML = '<div class="spinner"></div>';
-            const r = await ApiEquipos.getAll();
-
-            if (!r?.ok) {
-                // Si el endpoint no existe aún, usamos datos del fixture
-                Views.Selecciones.loadFromFixture();
-                return;
-            }
-
-            Views.Selecciones.all = r.data || [];
-            Views.Selecciones.render(Views.Selecciones.all);
-        },
-
-        // Fallback: construye la lista de equipos a partir del fixture ya cargado
-        loadFromFixture() {
-            const equiposMap = {};
-            State.partidos.forEach(p => {
-                if (!equiposMap[p.equipoLocal]) {
-                    equiposMap[p.equipoLocal] = {
-                        id: null, nombre: p.equipoLocal,
-                        grupo: p.grupo, banderaUrl: p.banderaLocal,
-                    };
+            async load() {
+                document.getElementById('sel-out').innerHTML = '<div class="spinner"></div>';
+                
+                // 1. Aseguramos tener los partidos para las estadísticas
+                if (!State.partidos || State.partidos.length === 0) {
+                    const rp = await ApiPartidos.getAll();
+                    if (rp?.ok) State.partidos = rp.data || [];
                 }
-                if (!equiposMap[p.equipoVisitante]) {
-                    equiposMap[p.equipoVisitante] = {
-                        id: null, nombre: p.equipoVisitante,
-                        grupo: p.grupo, banderaUrl: p.banderaVisitante,
-                    };
+
+                // 2. Traemos los equipos de la API (tu Google Script)
+                const r = await ApiEquipos.getAll();
+                if (!r?.ok || !r.data) {
+                    document.getElementById('sel-out').innerHTML = 
+                        '<div class="empty">⚠ No pudimos cargar los equipos.</div>';
+                    return;
                 }
-            });
 
-            // Si tampoco hay fixture, usar listado hardcodeado de grupos
-            if (!Object.keys(equiposMap).length) {
-                Views.Selecciones.renderSinDatos();
-                return;
-            }
+                Views.Selecciones.all = r.data;
+                Views.Selecciones.render(Views.Selecciones.all);
+            },
 
-            Views.Selecciones.all = Object.values(equiposMap);
-            Views.Selecciones.render(Views.Selecciones.all);
-        },
-
-        renderSinDatos() {
-            document.getElementById('sel-out').innerHTML =
-                `<div class="empty"><div class="eico">🏳️</div>
-         Cargá los partidos primero para ver las selecciones</div>`;
-        },
-
-        render(equipos) {
-            if (!equipos.length) { Views.Selecciones.renderSinDatos(); return; }
-
-            // Agrupar por grupo
-            const grupos = {};
-            equipos.forEach(e => { (grupos[e.grupo] = grupos[e.grupo] || []).push(e); });
-
-            const cards = Object.keys(grupos).sort().map(g => `
-        <div class="grp-section">
-          <div class="grp-label">
-            <span class="grp-pill">GRUPO ${g}</span>
-            <div class="grp-line"></div>
-          </div>
-          <div class="equipos-grid">
-            ${grupos[g].map(Views.Selecciones.equipoCardHTML).join('')}
-          </div>
-        </div>`).join('');
-
-            document.getElementById('sel-out').innerHTML = `
-        <div class="equipos-search">
-          <span class="ico">🔍</span>
-          <input type="text" placeholder="Buscar selección..."
-            oninput="Views.Selecciones.search(this.value)" />
-        </div>
-        <div id="sel-grupos">${cards}</div>`;
-        },
-
-        equipoCardHTML(e) {
-            // Calcular stats del equipo desde los partidos cargados
-            const stats = Views.Selecciones.calcStats(e.nombre);
-            return `
-        <div class="equipo-card" onclick="Views.Selecciones.showDetail('${e.nombre}')">
-          <div class="eq-top">
-            <img class="eq-flag" src="${e.banderaUrl || ''}" alt="${e.nombre}"
-                 onerror="this.style.visibility='hidden'" />
-            <div>
-              <div class="eq-name">${e.nombre}</div>
-              <div class="eq-grp">Grupo ${e.grupo}</div>
-            </div>
-          </div>
-          <div class="eq-stats">
-            <div class="eq-stat">
-              <div class="eq-stat-v">${stats.pj}</div>
-              <div class="eq-stat-l">PJ</div>
-            </div>
-            <div class="eq-stat">
-              <div class="eq-stat-v">${stats.pts}</div>
-              <div class="eq-stat-l">PTS</div>
-            </div>
-            <div class="eq-stat">
-              <div class="eq-stat-v">${stats.gf}</div>
-              <div class="eq-stat-l">GF</div>
-            </div>
-            <div class="eq-stat">
-              <div class="eq-stat-v">${stats.gc}</div>
-              <div class="eq-stat-l">GC</div>
-            </div>
-          </div>
-        </div>`;
-        },
-
-        // Calcula stats de un equipo a partir de los partidos finalizados
-        calcStats(nombre) {
-            const stats = { pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0, pts: 0 };
-            State.partidos
-                .filter(p => p.estado === 'FINALIZADO' &&
-                    (p.equipoLocal === nombre || p.equipoVisitante === nombre))
-                .forEach(p => {
-                    const esLocal = p.equipoLocal === nombre;
-                    const gf = esLocal ? p.golesLocal  : p.golesVisitante;
-                    const gc = esLocal ? p.golesVisitante : p.golesLocal;
-                    stats.pj++;
-                    stats.gf += gf ?? 0;
-                    stats.gc += gc ?? 0;
-                    if (gf > gc)      { stats.pg++; stats.pts += 3; }
-                    else if (gf === gc){ stats.pe++; stats.pts += 1; }
-                    else                { stats.pp++; }
-                });
-            return stats;
-        },
-
-        search(q) {
-            const txt = q.toLowerCase();
-            const filtrado = Views.Selecciones.all.filter(e =>
-                e.nombre.toLowerCase().includes(txt) || e.grupo.toLowerCase().includes(txt)
-            );
-            // Re-render solo las cards dentro del contenedor
-            const grupos = {};
-            filtrado.forEach(e => { (grupos[e.grupo] = grupos[e.grupo] || []).push(e); });
-
-            document.getElementById('sel-grupos').innerHTML = Object.keys(grupos).sort().map(g => `
-        <div class="grp-section">
-          <div class="grp-label">
-            <span class="grp-pill">GRUPO ${g}</span>
-            <div class="grp-line"></div>
-          </div>
-          <div class="equipos-grid">
-            ${grupos[g].map(Views.Selecciones.equipoCardHTML).join('')}
-          </div>
-        </div>`).join('') || '<div class="empty"><div class="eico">🔍</div>Sin resultados</div>';
-        },
-
-        async showDetail(nombre) {
-            const equipo = Views.Selecciones.all.find(e => e.nombre === nombre);
-            if (!equipo) return;
-
-            Views.Selecciones.selected = equipo;
-            const stats = Views.Selecciones.calcStats(nombre);
-
-            // Intentar cargar jugadores desde API, si no hay endpoint usamos placeholder
-            let jugadoresHTML = '<div class="empty" style="padding:20px"><div class="eico">⏳</div>Plantilla no disponible aún</div>';
-
-            if (equipo.id) {
-                const rj = await ApiEquipos.getJugadores(equipo.id);
-                if (rj?.ok && rj.data?.length) {
-                    jugadoresHTML = Views.Selecciones.jugadoresHTML(rj.data);
+            render(equipos) {
+                if (!equipos.length) { 
+                    document.getElementById('sel-out').innerHTML = '<div class="empty">Sin equipos cargados</div>';
+                    return; 
                 }
-            }
 
-            // Partidos del equipo en el fixture
-            const misPartidos = State.partidos
-                .filter(p => p.equipoLocal === nombre || p.equipoVisitante === nombre);
+                // Agrupar por grupo
+                const grupos = {};
+                equipos.forEach(e => { (grupos[e.grupo] = grupos[e.grupo] || []).push(e); });
 
-            const partidosHTML = misPartidos.map(p => {
-                const rival    = p.equipoLocal === nombre ? p.equipoVisitante : p.equipoLocal;
-                const eLocal   = p.equipoLocal === nombre;
-                const gf       = eLocal ? p.golesLocal : p.golesVisitante;
-                const gc       = eLocal ? p.golesVisitante : p.golesLocal;
-                const resultado = p.estado === 'FINALIZADO'
-                    ? `<strong>${gf} – ${gc}</strong>` : Fmt.fechaCorta(p.fechaHora);
-                return `
-          <div class="pred-row">
-            <span style="color:var(--tmut);font-size:11px">${eLocal ? 'vs.' : 'vs.'}</span>
-            <span class="pred-teams">${rival}</span>
-            <span class="pred-score">${resultado}</span>
-            ${Fmt.badge(p.estado, p.prediccionBloqueada)}
-          </div>`;
-            }).join('') || '<div style="color:var(--tmut);font-size:13px">Sin partidos cargados</div>';
+                const cards = Object.keys(grupos).sort().map(g => `
+                    <div class="grp-section">
+                        <div class="grp-label">
+                            <span class="grp-pill">GRUPO ${g}</span>
+                            <div class="grp-line"></div>
+                        </div>
+                        <div class="equipos-grid">
+                            ${grupos[g].map(Views.Selecciones.equipoCardHTML).join('')}
+                        </div>
+                    </div>`).join('');
 
-            document.getElementById('sel-detail-content').innerHTML = `
-        <div class="eq-detail">
-          <div class="eq-detail-head">
-            <img class="eq-detail-flag" src="${equipo.banderaUrl || ''}"
-                 alt="${equipo.nombre}" onerror="this.style.display='none'" />
-            <div>
-              <div class="eq-detail-name">${equipo.nombre}</div>
-              <div class="eq-detail-sub">Grupo ${equipo.grupo} · FIFA World Cup 2026</div>
-            </div>
-          </div>
-          <div class="eq-detail-body">
-
-            <!-- Stats en el torneo -->
-            <div style="margin-bottom:16px">
-              <div style="font-family:var(--disp);font-size:16px;font-weight:800;
-                          color:var(--navy);margin-bottom:12px">Rendimiento en el torneo</div>
-              <div class="eq-info-grid">
-                <div class="eq-info-item">
-                  <div class="eq-info-val">${stats.pj}</div>
-                  <div class="eq-info-lbl">Jugados</div>
-                </div>
-                <div class="eq-info-item">
-                  <div class="eq-info-val">${stats.pg}</div>
-                  <div class="eq-info-lbl">Ganados</div>
-                </div>
-                <div class="eq-info-item">
-                  <div class="eq-info-val">${stats.pe}</div>
-                  <div class="eq-info-lbl">Empatados</div>
-                </div>
-                <div class="eq-info-item">
-                  <div class="eq-info-val">${stats.pp}</div>
-                  <div class="eq-info-lbl">Perdidos</div>
-                </div>
-                <div class="eq-info-item">
-                  <div class="eq-info-val">${stats.gf}</div>
-                  <div class="eq-info-lbl">Goles a favor</div>
-                </div>
-                <div class="eq-info-item">
-                  <div class="eq-info-val">${stats.gc}</div>
-                  <div class="eq-info-lbl">Goles en contra</div>
-                </div>
-                <div class="eq-info-item">
-                  <div class="eq-info-val" style="color:var(--blue)">${stats.pts}</div>
-                  <div class="eq-info-lbl">Puntos</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="divider"></div>
-
-            <!-- Fixture del equipo -->
-            <div style="margin-bottom:16px">
-              <div style="font-family:var(--disp);font-size:16px;font-weight:800;
-                          color:var(--navy);margin-bottom:12px">Fixture</div>
-              <div class="pred-list">${partidosHTML}</div>
-            </div>
-
-            <div class="divider"></div>
-
-            <!-- Jugadores -->
-            <div>
-              <div style="font-family:var(--disp);font-size:16px;font-weight:800;
-                          color:var(--navy);margin-bottom:12px">Plantilla convocada</div>
-              ${jugadoresHTML}
-            </div>
-          </div>
-        </div>`;
-
-            Modal.open('modal-sel-detail');
-        },
-
-        jugadoresHTML(jugadores) {
-            // Agrupar por posición
-            const orden = ['PORTERO', 'DEFENSA', 'MEDIOCAMPO', 'DELANTERO'];
-            const grupos = {};
-            jugadores.forEach(j => { (grupos[j.posicion] = grupos[j.posicion] || []).push(j); });
-
-            return orden.filter(pos => grupos[pos]?.length).map(pos => {
-                const info = Fmt.posicionJugador(pos);
-                const lista = grupos[pos].sort((a, b) => (a.nroCamiseta || 99) - (b.nroCamiseta || 99));
-                return `
-          <div style="margin-bottom:14px">
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;
-                        letter-spacing:.8px;color:var(--tmut);margin-bottom:8px">
-              <span class="pos-badge ${info.cls}">${info.label}</span>
-              &nbsp;${pos.charAt(0) + pos.slice(1).toLowerCase()}s
-            </div>
-            <div class="jugadores-grid">
-              ${lista.map(j => `
-                <div class="jugador-card">
-                  <div class="jug-num">${j.nroCamiseta || '—'}</div>
-                  <div>
-                    <div class="jug-name">
-                      ${j.nombre}
-                      ${j.esEstrella ? '<span class="estrella">⭐</span>' : ''}
+                document.getElementById('sel-out').innerHTML = `
+                    <div class="equipos-search">
+                        <span class="ico">🔍</span>
+                        <input type="text" placeholder="Buscar selección..."
+                               oninput="Views.Selecciones.search(this.value)" />
                     </div>
-                    <span class="pos-badge ${info.cls}">${info.label}</span>
-                  </div>
-                </div>`).join('')}
-            </div>
-          </div>`;
-            }).join('');
+                    <div id="sel-grupos">${cards}</div>`;
+            },
+
+            equipoCardHTML(e) {
+                const stats = Views.Selecciones.calcStats(e.nombre);
+                return `
+                    <div class="equipo-card" onclick="Views.Selecciones.showDetail('${e.nombre}')">
+                        <div class="eq-top">
+                            <img class="eq-flag" src="${e.banderaUrl || ''}" alt="${e.nombre}"
+                                 onerror="this.style.visibility='hidden'" />
+                            <div>
+                                <div class="eq-name">${XSS.s(e.nombre)}</div>
+                                <div class="eq-grp">Grupo ${e.grupo}</div>
+                            </div>
+                        </div>
+                        <div class="eq-stats">
+                            <div class="eq-stat"><div class="eq-stat-v">${stats.pj}</div><div class="eq-stat-l">PJ</div></div>
+                            <div class="eq-stat"><div class="eq-stat-v">${stats.pts}</div><div class="eq-stat-l">PTS</div></div>
+                            <div class="eq-stat"><div class="eq-stat-v">${stats.gf}</div><div class="eq-stat-l">GF</div></div>
+                            <div class="eq-stat"><div class="eq-stat-v">${stats.gc}</div><div class="eq-stat-l">GC</div></div>
+                        </div>
+                    </div>`;
+            },
+
+            calcStats(nombre) {
+                const stats = { pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0, pts: 0 };
+                State.partidos
+                    .filter(p => p.estado === 'FINALIZADO' && (p.equipoLocal === nombre || p.equipoVisitante === nombre))
+                    .forEach(p => {
+                        const esLocal = p.equipoLocal === nombre;
+                        const gf = esLocal ? p.golesLocal : p.golesVisitante;
+                        const gc = esLocal ? p.golesVisitante : p.golesLocal;
+                        stats.pj++;
+                        stats.gf += (gf || 0);
+                        stats.gc += (gc || 0);
+                        if (gf > gc) { stats.pg++; stats.pts += 3; }
+                        else if (gf === gc) { stats.pe++; stats.pts += 1; }
+                        else { stats.pp++; }
+                    });
+                return stats;
+            },
+
+            search(q) {
+                const txt = q.toLowerCase();
+                const filtrado = Views.Selecciones.all.filter(e => 
+                    e.nombre.toLowerCase().includes(txt) || e.grupo.toLowerCase().includes(txt)
+                );
+                const grupos = {};
+                filtrado.forEach(e => { (grupos[e.grupo] = grupos[e.grupo] || []).push(e); });
+                document.getElementById('sel-grupos').innerHTML = Object.keys(grupos).sort().map(g => `
+                    <div class="grp-section">
+                        <div class="grp-label"><span class="grp-pill">GRUPO ${g}</span><div class="grp-line"></div></div>
+                        <div class="equipos-grid">${grupos[g].map(Views.Selecciones.equipoCardHTML).join('')}</div>
+                    </div>`).join('') || '<div class="empty">Sin resultados</div>';
+            },
+
+            async showDetail(nombre) {
+                const equipo = Views.Selecciones.all.find(e => e.nombre === nombre);
+                if (!equipo) return;
+
+                const cont = document.getElementById('sel-detail-content');
+                cont.innerHTML = '<div class="spinner"></div>';
+                Modal.open('modal-sel-detail');
+
+                // 1. Traer jugadores de la API
+                const rj = await ApiEquipos.getJugadores(equipo.id);
+                const jugadores = (rj?.ok && Array.isArray(rj.data)) ? rj.data : [];
+                
+                // 2. Renderizar
+                cont.innerHTML = `
+                    <div class="eq-detail-head">
+                        <img class="eq-detail-flag" src="${equipo.banderaUrl || ''}" alt="${equipo.nombre}" onerror="this.style.display='none'" />
+                        <div><div class="eq-detail-name">${XSS.s(equipo.nombre)}</div><div class="eq-detail-sub">Grupo ${equipo.grupo}</div></div>
+                    </div>
+                    <div class="eq-detail-body">
+                        <div style="font-family:var(--disp);font-size:16px;font-weight:800;margin-bottom:12px">Plantilla</div>
+                        ${jugadores.length > 0 ? this.jugadoresHTML(jugadores) : '<div class="empty">Sin información</div>'}
+                    </div>`;
+            },
+
+            jugadoresHTML(jugadores) {
+                const orden = ['PORTERO', 'DEFENSA', 'MEDIOCAMPO', 'DELANTERO'];
+                const grupos = {};
+                jugadores.forEach(j => { (grupos[j.posicion] = grupos[j.posicion] || []).push(j); });
+                return orden.filter(pos => grupos[pos]?.length).map(pos => {
+                    const info = Fmt.posicionJugador(pos);
+                    return `
+                        <div style="margin-bottom:12px">
+                            <div style="font-size:10px;font-weight:700;color:var(--tmut);text-transform:uppercase;margin-bottom:6px">${pos}</div>
+                            ${grupos[pos].sort((a,b) => a.nroCamiseta - b.nroCamiseta).map(j => `
+                                <div class="j-row" style="padding:6px;border-bottom:1px solid #eee">
+                                    <span style="width:25px;font-weight:bold">${j.nroCamiseta}</span>
+                                    <span>${XSS.s(j.nombre)} ${j.esEstrella ? '⭐' : ''}</span>
+                                </div>`).join('')}
+                        </div>`;
+                }).join('');
+            }
         },
-    },
 
     /* ═══════════════════════════════════════════════
        MI PERFIL
