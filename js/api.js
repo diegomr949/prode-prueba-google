@@ -1,135 +1,105 @@
 /* ═══════════════════════════════════════════════════════════
-   api.js — HTTP sin JWT · CPCE Mendoza · Prode Mundial 2026
-
-   Con sesiones de servidor:
-   · El navegador envía la cookie PRODE_SESSION automáticamente
-   · credentials: 'include' es OBLIGATORIO en fetch
-   · Sin header Authorization, sin token en sessionStorage
-   · El 401 significa sesión expirada → ir al login
+   api.js — ADAPTADO PARA GOOGLE APPS SCRIPT
+   Manejo de tokens locales y proxy POST total
 ═══════════════════════════════════════════════════════════ */
 
 const _meta    = document.querySelector('meta[name="api-base"]');
 const API_BASE = _meta ? _meta.getAttribute('content').replace(/\/$/, '') : '';
 
-if (!API_BASE) {
-    console.error('[API] ⚠ Falta <meta name="api-base"> en el HTML.');
-}
-
+if (!API_BASE) console.error('[API] ⚠ Falta <meta name="api-base"> en el HTML.');
 const TIMEOUT_MS = 15_000;
 
-/* ── HTTP helper ── */
-async function http(path, method = 'GET', body = null) {
-    const headers = { 'Content-Type': 'application/json' };
-    // Sin Authorization header — la cookie se envía automáticamente
+async function http(route, method = 'GET', body = null) {
+    const token = localStorage.getItem('PRODE_TOKEN');
+    
+    let url = API_BASE + '?route=' + encodeURIComponent(route);
+    if (token) url += '&token=' + encodeURIComponent(token);
 
     const ctrl = new AbortController();
     const tid  = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
 
+    // En GAS encapsulamos todo como POST para enviar payload complejo
+    const fetchMethod = method === 'GET' ? 'GET' : 'POST';
+    let payload = null;
+    
+    if (fetchMethod === 'POST') {
+        payload = JSON.stringify({ originalMethod: method, body: body });
+    }
+
     try {
-        const res = await fetch(API_BASE + path, {
-            method,
-            headers,
-            body:        body ? JSON.stringify(body) : null,
-            signal:      ctrl.signal,
-            credentials: 'include',   // OBLIGATORIO: envía la cookie de sesión
+        const res = await fetch(url, {
+            method: fetchMethod,
+            body: payload,
+            signal: ctrl.signal
         });
         clearTimeout(tid);
 
-        // Sesión expirada o no autenticado → logout y login
-        if (res.status === 401) {
+        const textRes = await res.text();
+        let data;
+        try { data = JSON.parse(textRes); } catch(e) { return null; }
+
+        if (data.error && data.code === 401) {
             Auth.logout();
-            Toast.info('Tu sesión expiró. Por favor iniciá sesión nuevamente.');
+            Toast.info('Tu sesión expiró. Iniciá sesión nuevamente.');
             return null;
         }
-
-        if (res.status === 429) {
-            const retry = res.headers.get('Retry-After') || '60';
-            Toast.err(`Demasiados intentos. Esperá ${retry} segundos.`);
-            return null;
-        }
-
-        const txt = await res.text();
-        if (!txt) return { ok: res.ok, status: res.status, data: null };
-        try { return { ok: res.ok, status: res.status, data: JSON.parse(txt) }; }
-        catch { return { ok: res.ok, status: res.status, data: txt }; }
-
+        return { ok: !data.error, status: data.code || 200, data: data.data };
     } catch (e) {
         clearTimeout(tid);
-        if (e.name === 'AbortError') Toast.err('El servidor tardó demasiado. Intentá de nuevo.');
+        if (e.name === 'AbortError') Toast.err('El servidor tardó demasiado.');
         else                          Toast.err('Error de conexión.');
         return null;
     }
 }
 
-/* ── Auth ── */
 const ApiAuth = {
-    // Login: el servidor crea la sesión y devuelve cookie automáticamente
-    login:  (email, password) => http('/auth/login', 'POST', { email, password }),
-    // Me: verifica si hay sesión activa al cargar la app
-    me:     ()                => http('/auth/me'),
-    // Logout: invalida la sesión en el servidor
-    logout: ()                => http('/auth/logout', 'POST'),
+    login:  async (email, password) => {
+        const r = await http('auth/login', 'POST', { email, password });
+        if (r?.ok && r.data.token) localStorage.setItem('PRODE_TOKEN', r.data.token);
+        return r;
+    },
+    registro: async (nombre, email, password, area) => {
+        const r = await http('auth/registro', 'POST', { nombre, email, password, area });
+        if (r?.ok && r.data.token) localStorage.setItem('PRODE_TOKEN', r.data.token);
+        return r;
+    },
+    me:     () => http('auth/me'),
+    logout: () => localStorage.removeItem('PRODE_TOKEN')
 };
 
-/* ── Partidos ── */
 const ApiPartidos = {
-    getAll: (estado = null) =>
-        http('/partidos' + (estado ? `?estado=${encodeURIComponent(estado)}` : '')),
+    getAll: (estado = null) => http('partidos' + (estado ? `&estado=${encodeURIComponent(estado)}` : '')),
 };
 
-/* ── Predicciones ── */
 const ApiPredicciones = {
-    getMias: () => http('/predicciones/mis-predicciones'),
+    getMias: () => http('predicciones/mis-predicciones'),
     guardar(pid, gl, gv) {
-        if (!Number.isInteger(pid) || pid <= 0)                  return null;
-        if (!Number.isInteger(gl) || gl < 0 || gl > 20)          return null;
-        if (!Number.isInteger(gv) || gv < 0 || gv > 20)          return null;
-        return http('/predicciones', 'POST', {
-            partidoId: pid, golesLocal: gl, golesVisitante: gv
-        });
+        if (!Number.isInteger(pid) || pid <= 0) return null;
+        if (!Number.isInteger(gl) || gl < 0 || gl > 20) return null;
+        if (!Number.isInteger(gv) || gv < 0 || gv > 20) return null;
+        return http('predicciones', 'POST', { partidoId: pid, golesLocal: gl, golesVisitante: gv });
     },
 };
 
-/* ── Ranking ── */
 const ApiRanking = {
-    get:      (area = null) =>
-        http('/ranking' + (area ? `?area=${encodeURIComponent(area)}` : '')),
-    getAreas: () => http('/ranking/areas'),
+    get:      (area = null) => http('ranking' + (area ? `&area=${encodeURIComponent(area)}` : '')),
+    getAreas: () => http('ranking/areas'),
 };
 
-/* ── Equipos ── */
 const ApiEquipos = {
-    getAll:       ()    => http('/equipos'),
-    getJugadores: (id)  =>
-        Number.isInteger(id) && id > 0 ? http(`/equipos/${id}/jugadores`) : null,
+    getAll:       ()   => http('equipos'),
+    getJugadores: (id) => http(`equipos/${id}/jugadores`)
 };
 
-/* ── Admin ── */
 const ApiAdmin = {
-    getUsuarios:     ()                    => http('/admin/usuarios'),
-    getDashboard:    (id)                  =>
-        Number.isInteger(id) && id > 0 ? http(`/admin/usuarios/${id}/dashboard`) : null,
-    resetPassword:   (id, p)              =>
-        (Number.isInteger(id) && p?.length >= 6)
-            ? http(`/admin/usuarios/${id}/reset-password`, 'PUT', { nuevaPassword: p })
-            : null,
-    actualizarArea:  (id, area)           =>
-        Number.isInteger(id) && id > 0
-            ? http(`/admin/usuarios/${id}/area`, 'PUT', { area: area || null })
-            : null,
-    crearUsuario:    (nombre, email, password, area) =>
-        http('/admin/usuarios', 'POST', { nombre, email, password, area: area || null }),
-    getAreas:        ()                   => http('/admin/areas'),
-    cargarResultado: (pid, gl, gv)        =>
-        http(`/admin/partidos/${pid}/resultado`, 'PUT', {
-            golesLocal: gl, golesVisitante: gv
-        }),
+    getUsuarios:     ()                    => http('admin/usuarios'),
+    getDashboard:    (id)                  => http(`admin/usuarios/${id}/dashboard`),
+    resetPassword:   (id, p)               => http(`admin/usuarios/${id}/reset-password`, 'PUT', { nuevaPassword: p }),
+    actualizarArea:  (id, area)            => http(`admin/usuarios/${id}/area`, 'PUT', { area: area || null }),
+    getAreas:        ()                    => http('ranking/areas'), // Reutilizamos endpoint
+    cargarResultado: (pid, gl, gv)         => http(`admin/partidos/${pid}/resultado`, 'PUT', { golesLocal: gl, golesVisitante: gv }),
 };
 
-/* ── Perfil ── */
 const ApiPerfil = {
-    cambiarPassword: (passwordActual, nuevaPassword) =>
-        (passwordActual && nuevaPassword?.length >= 6)
-            ? http('/perfil/cambiar-password', 'PUT', { passwordActual, nuevaPassword })
-            : null,
+    cambiarPassword: (passwordActual, nuevaPassword) => http('perfil/cambiar-password', 'PUT', { passwordActual, nuevaPassword }),
 };

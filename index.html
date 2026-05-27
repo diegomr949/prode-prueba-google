@@ -5,13 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Prode Mundial 2026 — CPCE Mendoza</title>
 
-  <!--
-    URL del backend — cambiar solo este meta tag según el ambiente.
-    Desarrollo:  http://localhost:8080/api
-    Producción:  https://prode-mundial-cpce.onrender.com/api
-  -->
-  <meta name="api-base" content="http://localhost:8080/api" />
-  <!-- Favicon inline — evita el 404 en /favicon.ico -->
+  <meta name="api-base" content="https://script.google.com/macros/s/TU_ID_DE_GOOGLE/exec" />
+  
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏆</text></svg>" />
 
   <meta http-equiv="Content-Security-Policy"
@@ -21,7 +16,7 @@
           style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
           font-src 'self' https://fonts.gstatic.com;
           img-src 'self' data: https://flagcdn.com https://cpcemza.org.ar;
-          connect-src 'self' http://localhost:8080 https:;
+          connect-src 'self' https://script.google.com https://script.googleusercontent.com;
           frame-ancestors 'none';
         " />
   <meta http-equiv="X-Content-Type-Options" content="nosniff" />
@@ -34,7 +29,6 @@
 </head>
 <body>
 
-<!-- ════ LOGIN ════ -->
 <div id="view-login" class="view active" style="display:flex">
   <div class="lcard">
     <div class="lhead">
@@ -61,7 +55,6 @@
   </div>
 </div>
 
-<!-- ════ TOPBAR ════ -->
 <header id="topbar" style="display:none">
   <a class="tb-logo" href="#" onclick="Router.go('partidos'); return false">
     <img src="https://cpcemza.org.ar/img/logo.png" alt="CPCE Mendoza"
@@ -96,10 +89,8 @@
   </div>
 </header>
 
-<!-- ════ MAIN ════ -->
 <main id="main" style="display:none">
 
-  <!-- FIXTURE -->
   <div id="view-partidos" class="view">
     <div class="wrap">
       <div class="ph">
@@ -145,7 +136,6 @@
     </div>
   </div>
 
-  <!-- RANKING -->
   <div id="view-ranking" class="view">
     <div class="wrap">
       <div class="ph">
@@ -169,7 +159,6 @@
     </div>
   </div>
 
-  <!-- SELECCIONES -->
   <div id="view-selecciones" class="view">
     <div class="wrap">
       <div class="ph">
@@ -182,7 +171,6 @@
     </div>
   </div>
 
-  <!-- REGLAMENTO -->
   <div id="view-reglamento" class="view">
     <div class="wrap">
       <div class="ph">
@@ -195,7 +183,6 @@
     </div>
   </div>
 
-  <!-- MI PERFIL -->
   <div id="view-perfil" class="view">
     <div class="wrap">
       <div class="ph">
@@ -208,7 +195,6 @@
     </div>
   </div>
 
-  <!-- ADMIN -->
   <div id="view-admin" class="view">
     <div class="wrap">
       <div class="ph">
@@ -230,7 +216,6 @@
 
 </main>
 
-<!-- ════ MOBILE NAV ════ -->
 <nav id="mobile-nav" style="display:none">
   <div class="mnav-inner">
     <button class="mnb active" data-v="partidos"    onclick="Router.go('partidos')">
@@ -254,15 +239,12 @@
   </div>
 </nav>
 
-<!-- FAB -->
 <button id="fab" onclick="Fab.saveAll()">
   💾 Guardar predicciones <span class="fabn" id="fabn">0</span>
 </button>
 
-<!-- Toasts -->
 <div id="toasts"></div>
 
-<!-- Modal: Reset contraseña -->
 <div class="moverlay" id="modal-reset">
   <div class="mbox">
     <div class="mtitle">Resetear contraseña</div>
@@ -281,7 +263,6 @@
   </div>
 </div>
 
-<!-- Modal: Asignar área -->
 <div class="moverlay" id="modal-area">
   <div class="mbox">
     <div class="mtitle">Asignar área</div>
@@ -301,7 +282,6 @@
   </div>
 </div>
 
-<!-- Modal: Dashboard usuario -->
 <div class="moverlay" id="modal-dashboard">
   <div class="mbox wide">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
@@ -316,7 +296,6 @@
   </div>
 </div>
 
-<!-- Modal: Detalle selección -->
 <div class="moverlay" id="modal-sel-detail">
   <div class="mbox wide">
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
@@ -327,7 +306,6 @@
   </div>
 </div>
 
-<!-- Scripts -->
 <script src="js/api.js"></script>
 <script src="js/store.js"></script>
 <script src="js/views.js"></script>
