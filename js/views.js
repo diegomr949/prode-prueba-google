@@ -1,24 +1,25 @@
 /* ═══════════════════════════════════════════════════════════
    views.js — Lógica de todas las vistas de la SPA
    CPCE Mendoza · Prode Mundial 2026
+   OPTIMIZADO: las vistas usan State cuando ya hay datos
+   precargados por Auth.boot, evitando re-fetches redundantes
 ═══════════════════════════════════════════════════════════ */
 
 const Views = {
 
-    /* Dispatcher: carga datos según qué vista se navega */
     load(name, params = {}) {
         switch (name) {
-            case 'partidos':    Views.Partidos.load();           break;
-            case 'ranking':     Views.Ranking.load();            break;
-            case 'selecciones': Views.Selecciones.load();        break;
-            case 'reglamento':  Views.Reglamento.load();         break;
-            case 'perfil':      Views.Perfil.load();             break;
-            case 'admin':       Views.Admin.load();              break;
+            case 'partidos':    Views.Partidos.load();    break;
+            case 'ranking':     Views.Ranking.load();     break;
+            case 'selecciones': Views.Selecciones.load(); break;
+            case 'reglamento':  Views.Reglamento.load();  break;
+            case 'perfil':      Views.Perfil.load();      break;
+            case 'admin':       Views.Admin.load();       break;
         }
     },
 
     /* ═══════════════════════════════════════════════
-       AUTH VIEW — Login / Registro
+       AUTH VIEW
     ═══════════════════════════════════════════════ */
     Auth: {
         switchTab(tab) {
@@ -43,7 +44,6 @@ const Views = {
             btn.disabled = false; btn.textContent = 'Ingresar';
 
             if (!r?.ok) return Toast.err(r?.data?.error || 'Credenciales incorrectas');
-
             Auth.saveSession(r.data);
             Auth.boot();
         },
@@ -64,7 +64,6 @@ const Views = {
             btn.disabled = false; btn.textContent = 'Crear cuenta';
 
             if (!r?.ok) return Toast.err(r?.data?.error || 'Error al registrarse');
-
             Toast.ok('¡Cuenta creada! Bienvenido/a 🎉');
             Auth.saveSession(r.data);
             Auth.boot();
@@ -116,7 +115,7 @@ const Views = {
           </div>
         </div>
 
-        <!-- ══ PUNTUACIÓN — la sección más importante ══ -->
+        <!-- ══ PUNTUACIÓN ══ -->
         <div style="background:var(--white);border:1px solid var(--border);
                     border-radius:var(--rl);overflow:hidden;
                     box-shadow:var(--shm);margin-bottom:20px">
@@ -130,17 +129,13 @@ const Views = {
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
                         gap:14px;margin-bottom:20px">
 
-              <!-- 3 pts -->
               <div style="background:var(--abg);border:2px solid #f0c060;
                           border-radius:var(--r);padding:20px;text-align:center">
                 <div style="font-family:var(--disp);font-size:52px;font-weight:800;
                              color:var(--amber);line-height:1">3</div>
                 <div style="font-size:13px;font-weight:700;color:var(--amber);
-                             text-transform:uppercase;letter-spacing:1px;margin-top:2px">
-                  PUNTOS
-                </div>
-                <div style="font-size:13px;font-weight:600;color:var(--text);
-                             margin-top:10px">Resultado exacto</div>
+                             text-transform:uppercase;letter-spacing:1px;margin-top:2px">PUNTOS</div>
+                <div style="font-size:13px;font-weight:600;color:var(--text);margin-top:10px">Resultado exacto</div>
                 <div style="font-size:12px;color:var(--tmut);margin-top:4px;line-height:1.4">
                   Acertás los goles exactos de ambos equipos
                 </div>
@@ -151,17 +146,13 @@ const Views = {
                 </div>
               </div>
 
-              <!-- 1 pt -->
               <div style="background:var(--light);border:2px solid #a0c0e8;
                           border-radius:var(--r);padding:20px;text-align:center">
                 <div style="font-family:var(--disp);font-size:52px;font-weight:800;
                              color:var(--blue);line-height:1">1</div>
                 <div style="font-size:13px;font-weight:700;color:var(--blue);
-                             text-transform:uppercase;letter-spacing:1px;margin-top:2px">
-                  PUNTO
-                </div>
-                <div style="font-size:13px;font-weight:600;color:var(--text);
-                             margin-top:10px">Tendencia correcta</div>
+                             text-transform:uppercase;letter-spacing:1px;margin-top:2px">PUNTO</div>
+                <div style="font-size:13px;font-weight:600;color:var(--text);margin-top:10px">Tendencia correcta</div>
                 <div style="font-size:12px;color:var(--tmut);margin-top:4px;line-height:1.4">
                   Acertás quién gana o que hay empate, pero no los goles exactos
                 </div>
@@ -172,17 +163,13 @@ const Views = {
                 </div>
               </div>
 
-              <!-- 0 pts -->
               <div style="background:var(--rbg);border:2px solid #f0a0a0;
                           border-radius:var(--r);padding:20px;text-align:center">
                 <div style="font-family:var(--disp);font-size:52px;font-weight:800;
                              color:var(--red);line-height:1">0</div>
                 <div style="font-size:13px;font-weight:700;color:var(--red);
-                             text-transform:uppercase;letter-spacing:1px;margin-top:2px">
-                  PUNTOS
-                </div>
-                <div style="font-size:13px;font-weight:600;color:var(--text);
-                             margin-top:10px">Sin acierto</div>
+                             text-transform:uppercase;letter-spacing:1px;margin-top:2px">PUNTOS</div>
+                <div style="font-size:13px;font-weight:600;color:var(--text);margin-top:10px">Sin acierto</div>
                 <div style="font-size:12px;color:var(--tmut);margin-top:4px;line-height:1.4">
                   No acertás ni el resultado ni quién gana o empata
                 </div>
@@ -195,7 +182,6 @@ const Views = {
 
             </div>
 
-            <!-- Tabla de ejemplos -->
             <div style="background:var(--bg);border-radius:var(--r);overflow:hidden;
                         border:1px solid var(--border)">
               <div style="padding:10px 16px;border-bottom:1px solid var(--border);
@@ -206,25 +192,21 @@ const Views = {
               <table style="width:100%;border-collapse:collapse;font-size:13px">
                 <thead>
                   <tr style="background:var(--white)">
-                    <th style="padding:10px 14px;text-align:left;color:var(--tmid);
-                                font-weight:600;border-bottom:1px solid var(--border)">Resultado real</th>
-                    <th style="padding:10px 14px;text-align:left;color:var(--tmid);
-                                font-weight:600;border-bottom:1px solid var(--border)">Tu predicción</th>
-                    <th style="padding:10px 14px;text-align:center;color:var(--tmid);
-                                font-weight:600;border-bottom:1px solid var(--border)">Puntos</th>
-                    <th style="padding:10px 14px;text-align:left;color:var(--tmid);
-                                font-weight:600;border-bottom:1px solid var(--border)">Motivo</th>
+                    <th style="padding:10px 14px;text-align:left;color:var(--tmid);font-weight:600;border-bottom:1px solid var(--border)">Resultado real</th>
+                    <th style="padding:10px 14px;text-align:left;color:var(--tmid);font-weight:600;border-bottom:1px solid var(--border)">Tu predicción</th>
+                    <th style="padding:10px 14px;text-align:center;color:var(--tmid);font-weight:600;border-bottom:1px solid var(--border)">Puntos</th>
+                    <th style="padding:10px 14px;text-align:left;color:var(--tmid);font-weight:600;border-bottom:1px solid var(--border)">Motivo</th>
                   </tr>
                 </thead>
                 <tbody>
                   ${[
-                ['2 – 1','2 – 1','🎯 3','Resultado exacto — ¡pleno!'],
-                ['3 – 0','1 – 0','👍 1','Acertaste que ganaba el local'],
-                ['1 – 1','2 – 2','👍 1','Acertaste el empate'],
-                ['0 – 0','0 – 0','🎯 3','Empate exacto — ¡pleno!'],
-                ['1 – 2','2 – 0','❌ 0','Predijiste local, ganó visitante'],
-                ['0 – 1','1 – 1','❌ 0','Predijiste empate, ganó visitante'],
-            ].map(([r, p, pts, m], i) => `
+                    ['2 – 1','2 – 1','🎯 3','Resultado exacto — ¡pleno!'],
+                    ['3 – 0','1 – 0','👍 1','Acertaste que ganaba el local'],
+                    ['1 – 1','2 – 2','👍 1','Acertaste el empate'],
+                    ['0 – 0','0 – 0','🎯 3','Empate exacto — ¡pleno!'],
+                    ['1 – 2','2 – 0','❌ 0','Predijiste local, ganó visitante'],
+                    ['0 – 1','1 – 1','❌ 0','Predijiste empate, ganó visitante'],
+                  ].map(([r, p, pts, m], i) => `
                     <tr style="background:${i % 2 === 0 ? 'var(--white)' : 'var(--bg)'}">
                       <td style="padding:9px 14px;font-weight:700;color:var(--navy)">${r}</td>
                       <td style="padding:9px 14px;color:var(--tmid)">${p}</td>
@@ -241,164 +223,128 @@ const Views = {
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
                     gap:16px;margin-bottom:20px">
 
-          <!-- Participación -->
-          <div style="background:var(--white);border:1px solid var(--border);
-                      border-radius:var(--rl);box-shadow:var(--sh);overflow:hidden">
-            <div style="background:var(--cpce-blue,var(--blue));padding:14px 20px;
-                        display:flex;align-items:center;gap:8px">
+          <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--rl);box-shadow:var(--sh);overflow:hidden">
+            <div style="background:var(--cpce-blue,var(--blue));padding:14px 20px;display:flex;align-items:center;gap:8px">
               <span style="font-size:18px">👥</span>
-              <span style="font-family:var(--disp);font-size:17px;font-weight:800;
-                           color:#fff;letter-spacing:.3px">PARTICIPACIÓN</span>
+              <span style="font-family:var(--disp);font-size:17px;font-weight:800;color:#fff;letter-spacing:.3px">PARTICIPACIÓN</span>
             </div>
             <div style="padding:18px 20px">
               <ul style="list-style:none;display:flex;flex-direction:column;gap:10px">
                 ${[
-                ['✅','Puede participar todo el personal del CPCE Mendoza.'],
-                ['✅','El registro es gratuito y de uso exclusivo interno.'],
-                ['✅','Cada participante tiene una cuenta individual e intransferible.'],
-                ['✅','La participación es voluntaria.'],
-                ['⚠️','Queda prohibido compartir o ceder el acceso a la cuenta a otra persona.'],
-            ].map(([ico, txt]) => `
-                  <li style="display:flex;gap:10px;font-size:13px;line-height:1.5;
-                              color:var(--tmid)">
-                    <span style="flex-shrink:0;margin-top:1px">${ico}</span>
-                    <span>${txt}</span>
+                  ['✅','Puede participar todo el personal del CPCE Mendoza.'],
+                  ['✅','El registro es gratuito y de uso exclusivo interno.'],
+                  ['✅','Cada participante tiene una cuenta individual e intransferible.'],
+                  ['✅','La participación es voluntaria.'],
+                  ['⚠️','Queda prohibido compartir o ceder el acceso a la cuenta a otra persona.'],
+                ].map(([ico, txt]) => `
+                  <li style="display:flex;gap:10px;font-size:13px;line-height:1.5;color:var(--tmid)">
+                    <span style="flex-shrink:0;margin-top:1px">${ico}</span><span>${txt}</span>
                   </li>`).join('')}
               </ul>
             </div>
           </div>
 
-          <!-- Predicciones -->
-          <div style="background:var(--white);border:1px solid var(--border);
-                      border-radius:var(--rl);box-shadow:var(--sh);overflow:hidden">
-            <div style="background:var(--green);padding:14px 20px;
-                        display:flex;align-items:center;gap:8px">
+          <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--rl);box-shadow:var(--sh);overflow:hidden">
+            <div style="background:var(--green);padding:14px 20px;display:flex;align-items:center;gap:8px">
               <span style="font-size:18px">⚽</span>
-              <span style="font-family:var(--disp);font-size:17px;font-weight:800;
-                           color:#fff;letter-spacing:.3px">PREDICCIONES</span>
+              <span style="font-family:var(--disp);font-size:17px;font-weight:800;color:#fff;letter-spacing:.3px">PREDICCIONES</span>
             </div>
             <div style="padding:18px 20px">
               <ul style="list-style:none;display:flex;flex-direction:column;gap:10px">
                 ${[
-                ['📝','Se pronostica el marcador exacto (goles de cada equipo) de cada partido.'],
-                ['🔓','Las predicciones están abiertas desde que el partido aparece en el fixture.'],
-                ['🔒','Las predicciones se cierran automáticamente <strong>15 minutos antes</strong> del inicio del partido.'],
-                ['✏️','Podés modificar tu predicción todas las veces que quieras hasta el cierre.'],
-                ['🚫','Una vez cerrado el partido no se puede cargar ni modificar ningún pronóstico.'],
-                ['0️⃣','Los partidos sin predicción cargada otorgan 0 puntos automáticamente.'],
-            ].map(([ico, txt]) => `
-                  <li style="display:flex;gap:10px;font-size:13px;line-height:1.5;
-                              color:var(--tmid)">
-                    <span style="flex-shrink:0;margin-top:1px">${ico}</span>
-                    <span>${txt}</span>
+                  ['📝','Se pronostica el marcador exacto (goles de cada equipo) de cada partido.'],
+                  ['🔓','Las predicciones están abiertas desde que el partido aparece en el fixture.'],
+                  ['🔒','Las predicciones se cierran automáticamente <strong>15 minutos antes</strong> del inicio del partido.'],
+                  ['✏️','Podés modificar tu predicción todas las veces que quieras hasta el cierre.'],
+                  ['🚫','Una vez cerrado el partido no se puede cargar ni modificar ningún pronóstico.'],
+                  ['0️⃣','Los partidos sin predicción cargada otorgan 0 puntos automáticamente.'],
+                ].map(([ico, txt]) => `
+                  <li style="display:flex;gap:10px;font-size:13px;line-height:1.5;color:var(--tmid)">
+                    <span style="flex-shrink:0;margin-top:1px">${ico}</span><span>${txt}</span>
                   </li>`).join('')}
               </ul>
             </div>
           </div>
 
-          <!-- Ranking y desempates -->
-          <div style="background:var(--white);border:1px solid var(--border);
-                      border-radius:var(--rl);box-shadow:var(--sh);overflow:hidden">
-            <div style="background:var(--amber);padding:14px 20px;
-                        display:flex;align-items:center;gap:8px">
+          <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--rl);box-shadow:var(--sh);overflow:hidden">
+            <div style="background:var(--amber);padding:14px 20px;display:flex;align-items:center;gap:8px">
               <span style="font-size:18px">🏅</span>
-              <span style="font-family:var(--disp);font-size:17px;font-weight:800;
-                           color:#fff;letter-spacing:.3px">RANKING Y DESEMPATES</span>
+              <span style="font-family:var(--disp);font-size:17px;font-weight:800;color:#fff;letter-spacing:.3px">RANKING Y DESEMPATES</span>
             </div>
             <div style="padding:18px 20px">
               <ul style="list-style:none;display:flex;flex-direction:column;gap:10px">
                 ${[
-                ['📊','La tabla de posiciones se actualiza automáticamente al cargar cada resultado.'],
-                ['🌐','Existe un ranking general y rankings por área/sector del Consejo.'],
-                ['1️⃣','<strong>Primer criterio de desempate:</strong> mayor cantidad de plenos (resultados exactos).'],
-                ['2️⃣','<strong>Segundo criterio de desempate:</strong> fecha de registro más antigua en el sistema.'],
-                ['👁️','Todos los participantes pueden ver el ranking completo en tiempo real.'],
-            ].map(([ico, txt]) => `
-                  <li style="display:flex;gap:10px;font-size:13px;line-height:1.5;
-                              color:var(--tmid)">
-                    <span style="flex-shrink:0;margin-top:1px">${ico}</span>
-                    <span>${txt}</span>
+                  ['📊','La tabla de posiciones se actualiza automáticamente al cargar cada resultado.'],
+                  ['🌐','Existe un ranking general y rankings por área/sector del Consejo.'],
+                  ['1️⃣','<strong>Primer criterio de desempate:</strong> mayor cantidad de plenos (resultados exactos).'],
+                  ['2️⃣','<strong>Segundo criterio de desempate:</strong> fecha de registro más antigua en el sistema.'],
+                  ['👁️','Todos los participantes pueden ver el ranking completo en tiempo real.'],
+                ].map(([ico, txt]) => `
+                  <li style="display:flex;gap:10px;font-size:13px;line-height:1.5;color:var(--tmid)">
+                    <span style="flex-shrink:0;margin-top:1px">${ico}</span><span>${txt}</span>
                   </li>`).join('')}
               </ul>
             </div>
           </div>
 
-          <!-- Resultados y transparencia -->
-          <div style="background:var(--white);border:1px solid var(--border);
-                      border-radius:var(--rl);box-shadow:var(--sh);overflow:hidden">
-            <div style="background:#6b21a8;padding:14px 20px;
-                        display:flex;align-items:center;gap:8px">
+          <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--rl);box-shadow:var(--sh);overflow:hidden">
+            <div style="background:#6b21a8;padding:14px 20px;display:flex;align-items:center;gap:8px">
               <span style="font-size:18px">🔍</span>
-              <span style="font-family:var(--disp);font-size:17px;font-weight:800;
-                           color:#fff;letter-spacing:.3px">TRANSPARENCIA</span>
+              <span style="font-family:var(--disp);font-size:17px;font-weight:800;color:#fff;letter-spacing:.3px">TRANSPARENCIA</span>
             </div>
             <div style="padding:18px 20px">
               <ul style="list-style:none;display:flex;flex-direction:column;gap:10px">
                 ${[
-                ['📡','Los resultados reales los carga únicamente el administrador del sistema.'],
-                ['⚡','El cálculo de puntos es automático e inmediato al cargar el resultado.'],
-                ['👀','Una vez iniciado el partido, cualquier participante puede ver los pronósticos de todos.'],
-                ['🔐','Las predicciones son privadas hasta el inicio del partido para garantizar la equidad.'],
-                ['⚠️','Ante errores de carga, el administrador puede corregir un resultado. El sistema recalcula los puntos automáticamente.'],
-            ].map(([ico, txt]) => `
-                  <li style="display:flex;gap:10px;font-size:13px;line-height:1.5;
-                              color:var(--tmid)">
-                    <span style="flex-shrink:0;margin-top:1px">${ico}</span>
-                    <span>${txt}</span>
+                  ['📡','Los resultados reales los carga únicamente el administrador del sistema.'],
+                  ['⚡','El cálculo de puntos es automático e inmediato al cargar el resultado.'],
+                  ['👀','Una vez iniciado el partido, cualquier participante puede ver los pronósticos de todos.'],
+                  ['🔐','Las predicciones son privadas hasta el inicio del partido para garantizar la equidad.'],
+                  ['⚠️','Ante errores de carga, el administrador puede corregir un resultado. El sistema recalcula los puntos automáticamente.'],
+                ].map(([ico, txt]) => `
+                  <li style="display:flex;gap:10px;font-size:13px;line-height:1.5;color:var(--tmid)">
+                    <span style="flex-shrink:0;margin-top:1px">${ico}</span><span>${txt}</span>
                   </li>`).join('')}
               </ul>
             </div>
           </div>
 
-          <!-- Fases del torneo -->
-          <div style="background:var(--white);border:1px solid var(--border);
-                      border-radius:var(--rl);box-shadow:var(--sh);overflow:hidden">
-            <div style="background:#0f766e;padding:14px 20px;
-                        display:flex;align-items:center;gap:8px">
+          <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--rl);box-shadow:var(--sh);overflow:hidden">
+            <div style="background:#0f766e;padding:14px 20px;display:flex;align-items:center;gap:8px">
               <span style="font-size:18px">🗓️</span>
-              <span style="font-family:var(--disp);font-size:17px;font-weight:800;
-                           color:#fff;letter-spacing:.3px">FASES DEL TORNEO</span>
+              <span style="font-family:var(--disp);font-size:17px;font-weight:800;color:#fff;letter-spacing:.3px">FASES DEL TORNEO</span>
             </div>
             <div style="padding:18px 20px">
               <ul style="list-style:none;display:flex;flex-direction:column;gap:10px">
                 ${[
-                ['⚽','<strong>Fase de grupos:</strong> 48 partidos, 12 grupos de 4 equipos. Los 2 primeros de cada grupo avanzan más 8 mejores terceros.'],
-                ['⚽','<strong>Ronda de 32:</strong> 32 equipos clasificados.'],
-                ['⚽','<strong>Octavos, cuartos, semifinales y final</strong> completan el torneo.'],
-                ['📋','Las predicciones de cada fase se habilitarán a medida que avance el Mundial.'],
-                ['🏆','El sistema acumula puntos de <strong>todas las fases</strong> del torneo.'],
-            ].map(([ico, txt]) => `
-                  <li style="display:flex;gap:10px;font-size:13px;line-height:1.5;
-                              color:var(--tmid)">
-                    <span style="flex-shrink:0;margin-top:1px">${ico}</span>
-                    <span>${txt}</span>
+                  ['⚽','<strong>Fase de grupos:</strong> 48 partidos, 12 grupos de 4 equipos. Los 2 primeros de cada grupo avanzan más 8 mejores terceros.'],
+                  ['⚽','<strong>Ronda de 32:</strong> 32 equipos clasificados.'],
+                  ['⚽','<strong>Octavos, cuartos, semifinales y final</strong> completan el torneo.'],
+                  ['📋','Las predicciones de cada fase se habilitarán a medida que avance el Mundial.'],
+                  ['🏆','El sistema acumula puntos de <strong>todas las fases</strong> del torneo.'],
+                ].map(([ico, txt]) => `
+                  <li style="display:flex;gap:10px;font-size:13px;line-height:1.5;color:var(--tmid)">
+                    <span style="flex-shrink:0;margin-top:1px">${ico}</span><span>${txt}</span>
                   </li>`).join('')}
               </ul>
             </div>
           </div>
 
-          <!-- Soporte -->
-          <div style="background:var(--white);border:1px solid var(--border);
-                      border-radius:var(--rl);box-shadow:var(--sh);overflow:hidden">
-            <div style="background:var(--navy);padding:14px 20px;
-                        display:flex;align-items:center;gap:8px">
+          <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--rl);box-shadow:var(--sh);overflow:hidden">
+            <div style="background:var(--navy);padding:14px 20px;display:flex;align-items:center;gap:8px">
               <span style="font-size:18px">🛠️</span>
-              <span style="font-family:var(--disp);font-size:17px;font-weight:800;
-                           color:#fff;letter-spacing:.3px">SOPORTE Y CONTACTO</span>
+              <span style="font-family:var(--disp);font-size:17px;font-weight:800;color:#fff;letter-spacing:.3px">SOPORTE Y CONTACTO</span>
             </div>
             <div style="padding:18px 20px">
               <ul style="list-style:none;display:flex;flex-direction:column;gap:10px">
                 ${[
-                ['🔑','¿Olvidaste tu contraseña? Contactá al administrador del sistema para que te la resetee.'],
-                ['✏️','¿Querés cambiar tu contraseña? Podés hacerlo desde <strong>Mi Perfil → Cambiar contraseña</strong>.'],
-                ['🏢','¿Tu área no está asignada? Consultá al administrador para que te la agregue.'],
-                ['🐛','¿Encontraste un error en un resultado? Notificalo inmediatamente al administrador.'],
-                ['📱','El sistema funciona desde cualquier dispositivo con navegador web.'],
-            ].map(([ico, txt]) => `
-                  <li style="display:flex;gap:10px;font-size:13px;line-height:1.5;
-                              color:var(--tmid)">
-                    <span style="flex-shrink:0;margin-top:1px">${ico}</span>
-                    <span>${txt}</span>
+                  ['🔑','¿Olvidaste tu contraseña? Contactá al administrador del sistema para que te la resetee.'],
+                  ['✏️','¿Querés cambiar tu contraseña? Podés hacerlo desde <strong>Mi Perfil → Cambiar contraseña</strong>.'],
+                  ['🏢','¿Tu área no está asignada? Consultá al administrador para que te la agregue.'],
+                  ['🐛','¿Encontraste un error en un resultado? Notificalo inmediatamente al administrador.'],
+                  ['📱','El sistema funciona desde cualquier dispositivo con navegador web.'],
+                ].map(([ico, txt]) => `
+                  <li style="display:flex;gap:10px;font-size:13px;line-height:1.5;color:var(--tmid)">
+                    <span style="flex-shrink:0;margin-top:1px">${ico}</span><span>${txt}</span>
                   </li>`).join('')}
               </ul>
             </div>
@@ -406,7 +352,6 @@ const Views = {
 
         </div>
 
-        <!-- ══ NOTA FINAL ══ -->
         <div style="background:var(--light);border:1px solid var(--bstrong);
                     border-radius:var(--r);padding:16px 20px;
                     display:flex;gap:12px;align-items:flex-start">
@@ -429,8 +374,17 @@ const Views = {
     ═══════════════════════════════════════════════ */
     Partidos: {
         async load() {
-            document.getElementById('mout').innerHTML = '<div class="spinner"></div>';
+            // Si ya tenemos datos del preload de Auth.boot, renderizamos inmediatamente
+            if (State.partidos.length > 0) {
+                Views.Partidos.refreshStats();
+                Views.Partidos.render();
+                // Actualizamos en segundo plano silenciosamente
+                Views.Partidos._refreshBackground();
+                return;
+            }
 
+            // Primera carga real (sin datos precargados)
+            document.getElementById('mout').innerHTML = '<div class="spinner"></div>';
             const [rp, rm] = await Promise.all([
                 ApiPartidos.getAll(),
                 ApiPredicciones.getMias(),
@@ -442,6 +396,19 @@ const Views = {
             State.misPreds = {};
             (rm?.data || []).forEach(p => { State.misPreds[p.partidoId] = p; });
 
+            Views.Partidos.refreshStats();
+            Views.Partidos.render();
+        },
+
+        async _refreshBackground() {
+            const [rp, rm] = await Promise.all([
+                ApiPartidos.getAll(),
+                ApiPredicciones.getMias(),
+            ]);
+            if (!rp?.ok) return;
+            State.partidos = rp.data || [];
+            State.misPreds = {};
+            (rm?.data || []).forEach(p => { State.misPreds[p.partidoId] = p; });
             Views.Partidos.refreshStats();
             Views.Partidos.render();
         },
@@ -461,6 +428,11 @@ const Views = {
             document.getElementById('plbl').textContent  = `${vals.length} de ${State.partidos.length} pronosticados`;
             document.getElementById('pbar').style.width  = pct + '%';
             document.getElementById('ppct').textContent  = pct + '%';
+
+            // Posición en el ranking (ya disponible desde el preload)
+            const mio   = State.ranking.find(u => u.email === State.user?.email);
+            const posEl = document.getElementById('spos');
+            if (posEl) posEl.textContent = mio ? `#${mio.posicion}` : '—';
         },
 
         setFilter(f, btn) {
@@ -480,7 +452,6 @@ const Views = {
                 return;
             }
 
-            // Agrupar por grupo
             const grupos = {};
             lista.forEach(p => { (grupos[p.grupo] = grupos[p.grupo] || []).push(p); });
 
@@ -499,7 +470,6 @@ const Views = {
             const pd = State.pending[p.id];
             const lk = p.prediccionBloqueada;
 
-            // Centro: marcador real o inputs de predicción
             let center = '';
             if (p.estado === 'FINALIZADO') {
                 center = `
@@ -509,8 +479,8 @@ const Views = {
             <span class="snum">${p.golesVisitante ?? '?'}</span>
           </div>`;
             } else {
-                const vl = pd?.golesLocal      ?? m?.golesLocalPredichos      ?? '';
-                const vv = pd?.golesVisitante  ?? m?.golesVisitantePredichos  ?? '';
+                const vl = pd?.golesLocal     ?? m?.golesLocalPredichos     ?? '';
+                const vv = pd?.golesVisitante ?? m?.golesVisitantePredichos ?? '';
                 center = `
           <div class="pinputs">
             <input type="number" min="0" max="20" class="pi"
@@ -523,7 +493,6 @@ const Views = {
           </div>`;
             }
 
-            // Footer con resultado de mi predicción
             let footer = '';
             if (p.estado === 'FINALIZADO') {
                 if (m) {
@@ -605,32 +574,61 @@ const Views = {
     ═══════════════════════════════════════════════ */
     Ranking: {
         async load() {
-            document.getElementById('rout').innerHTML = '<div class="spinner"></div>';
+            // Si ya hay ranking precargado, mostrarlo inmediatamente
+            if (State.ranking.length > 0) {
+                Views.Ranking._populate(State.ranking);
+                // Actualizar áreas si el select está vacío
+                Views.Ranking._loadAreas();
+                // Refresh silencioso
+                Views.Ranking._refreshBackground();
+                return;
+            }
 
-            // Cargar áreas para el selector (en paralelo con el ranking)
+            document.getElementById('rout').innerHTML = '<div class="spinner"></div>';
             const [r, rAreas] = await Promise.all([
                 ApiRanking.get(),
                 ApiRanking.getAreas(),
             ]);
 
             if (!r?.ok) return Toast.err('Error al cargar el ranking');
-
             State.ranking = r.data || [];
 
-            // Poblar el select de áreas
+            Views.Ranking._populateAreas(rAreas);
+            Views.Ranking._populate(State.ranking);
+        },
+
+        async _loadAreas() {
+            const sel = document.getElementById('ranking-area-filter');
+            if (sel && sel.options.length <= 1) {
+                const rAreas = await ApiRanking.getAreas();
+                Views.Ranking._populateAreas(rAreas);
+            }
+            // Posición del usuario
+            const mio   = State.ranking.find(u => u.email === State.user?.email);
+            const posEl = document.getElementById('spos');
+            if (posEl) posEl.textContent = mio ? `#${mio.posicion}` : '—';
+        },
+
+        async _refreshBackground() {
+            const r = await ApiRanking.get();
+            if (!r?.ok) return;
+            State.ranking = r.data || [];
+            Views.Ranking._populate(State.ranking);
+        },
+
+        _populateAreas(rAreas) {
             const sel = document.getElementById('ranking-area-filter');
             if (sel && rAreas?.ok && rAreas.data?.length) {
-                // Mantener la opción "Todas las áreas" y agregar las demás
                 sel.innerHTML = '<option value="">🌐 Todas las áreas</option>' +
                     rAreas.data.map(a => `<option value="${XSS.s(a)}">${XSS.s(a)}</option>`).join('');
             }
+        },
 
-            // Actualizar posición del usuario en stats
-            const mio = State.ranking.find(u => u.email === State.user?.email);
+        _populate(data) {
+            const mio   = State.ranking.find(u => u.email === State.user?.email);
             const posEl = document.getElementById('spos');
             if (posEl) posEl.textContent = mio ? `#${mio.posicion}` : '—';
-
-            Views.Ranking.render(State.ranking);
+            Views.Ranking.render(data);
         },
 
         async filtrarPorArea(area) {
@@ -681,7 +679,6 @@ const Views = {
             <tbody>${rows}</tbody>
           </table>
         </div>
-
         <div style="margin-top:14px;padding:12px 16px;background:var(--white);
                     border:1px solid var(--border);border-radius:var(--r);
                     font-size:12px;color:var(--tmut);box-shadow:var(--sh)">
@@ -695,183 +692,212 @@ const Views = {
     },
 
     /* ═══════════════════════════════════════════════
-       SELECCIONES — Estadísticas y jugadores
+       SELECCIONES
     ═══════════════════════════════════════════════ */
     Selecciones: {
-            all: [],
-            selected: null,
+        all:      [],
+        selected: null,
 
-            async load() {
-                document.getElementById('sel-out').innerHTML = '<div class="spinner"></div>';
-                
-                // 1. Aseguramos tener los partidos para las estadísticas
-                if (!State.partidos || State.partidos.length === 0) {
+        async load() {
+            // Reusar equipos si ya están en State
+            if (State.equipos && State.equipos.length > 0) {
+                Views.Selecciones.all = State.equipos;
+                // Asegurar que tengamos partidos para calcStats
+                if (!State.partidos.length) {
                     const rp = await ApiPartidos.getAll();
                     if (rp?.ok) State.partidos = rp.data || [];
                 }
-
-                // 2. Traemos los equipos de la API (tu Google Script)
-                const r = await ApiEquipos.getAll();
-                if (!r?.ok || !r.data) {
-                    document.getElementById('sel-out').innerHTML = 
-                        '<div class="empty">⚠ No pudimos cargar los equipos.</div>';
-                    return;
-                }
-
-                Views.Selecciones.all = r.data;
                 Views.Selecciones.render(Views.Selecciones.all);
-            },
-
-            render(equipos) {
-                if (!equipos.length) { 
-                    document.getElementById('sel-out').innerHTML = '<div class="empty">Sin equipos cargados</div>';
-                    return; 
-                }
-
-                // Agrupar por grupo
-                const grupos = {};
-                equipos.forEach(e => { (grupos[e.grupo] = grupos[e.grupo] || []).push(e); });
-
-                const cards = Object.keys(grupos).sort().map(g => `
-                    <div class="grp-section">
-                        <div class="grp-label">
-                            <span class="grp-pill">GRUPO ${g}</span>
-                            <div class="grp-line"></div>
-                        </div>
-                        <div class="equipos-grid">
-                            ${grupos[g].map(Views.Selecciones.equipoCardHTML).join('')}
-                        </div>
-                    </div>`).join('');
-
-                document.getElementById('sel-out').innerHTML = `
-                    <div class="equipos-search">
-                        <span class="ico">🔍</span>
-                        <input type="text" placeholder="Buscar selección..."
-                               oninput="Views.Selecciones.search(this.value)" />
-                    </div>
-                    <div id="sel-grupos">${cards}</div>`;
-            },
-
-            equipoCardHTML(e) {
-                const stats = Views.Selecciones.calcStats(e.nombre);
-                return `
-                    <div class="equipo-card" onclick="Views.Selecciones.showDetail('${e.nombre}')">
-                        <div class="eq-top">
-                            <img class="eq-flag" src="${e.banderaUrl || ''}" alt="${e.nombre}"
-                                 onerror="this.style.visibility='hidden'" />
-                            <div>
-                                <div class="eq-name">${XSS.s(e.nombre)}</div>
-                                <div class="eq-grp">Grupo ${e.grupo}</div>
-                            </div>
-                        </div>
-                        <div class="eq-stats">
-                            <div class="eq-stat"><div class="eq-stat-v">${stats.pj}</div><div class="eq-stat-l">PJ</div></div>
-                            <div class="eq-stat"><div class="eq-stat-v">${stats.pts}</div><div class="eq-stat-l">PTS</div></div>
-                            <div class="eq-stat"><div class="eq-stat-v">${stats.gf}</div><div class="eq-stat-l">GF</div></div>
-                            <div class="eq-stat"><div class="eq-stat-v">${stats.gc}</div><div class="eq-stat-l">GC</div></div>
-                        </div>
-                    </div>`;
-            },
-
-            calcStats(nombre) {
-                const stats = { pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0, pts: 0 };
-                State.partidos
-                    .filter(p => p.estado === 'FINALIZADO' && (p.equipoLocal === nombre || p.equipoVisitante === nombre))
-                    .forEach(p => {
-                        const esLocal = p.equipoLocal === nombre;
-                        const gf = esLocal ? p.golesLocal : p.golesVisitante;
-                        const gc = esLocal ? p.golesVisitante : p.golesLocal;
-                        stats.pj++;
-                        stats.gf += (gf || 0);
-                        stats.gc += (gc || 0);
-                        if (gf > gc) { stats.pg++; stats.pts += 3; }
-                        else if (gf === gc) { stats.pe++; stats.pts += 1; }
-                        else { stats.pp++; }
-                    });
-                return stats;
-            },
-
-            search(q) {
-                const txt = q.toLowerCase();
-                const filtrado = Views.Selecciones.all.filter(e => 
-                    e.nombre.toLowerCase().includes(txt) || e.grupo.toLowerCase().includes(txt)
-                );
-                const grupos = {};
-                filtrado.forEach(e => { (grupos[e.grupo] = grupos[e.grupo] || []).push(e); });
-                document.getElementById('sel-grupos').innerHTML = Object.keys(grupos).sort().map(g => `
-                    <div class="grp-section">
-                        <div class="grp-label"><span class="grp-pill">GRUPO ${g}</span><div class="grp-line"></div></div>
-                        <div class="equipos-grid">${grupos[g].map(Views.Selecciones.equipoCardHTML).join('')}</div>
-                    </div>`).join('') || '<div class="empty">Sin resultados</div>';
-            },
-
-            async showDetail(nombre) {
-                const equipo = Views.Selecciones.all.find(e => e.nombre === nombre);
-                if (!equipo) return;
-
-                const cont = document.getElementById('sel-detail-content');
-                cont.innerHTML = '<div class="spinner"></div>';
-                Modal.open('modal-sel-detail');
-
-                // 1. Traer jugadores de la API
-                const rj = await ApiEquipos.getJugadores(equipo.id);
-                const jugadores = (rj?.ok && Array.isArray(rj.data)) ? rj.data : [];
-                
-                // 2. Renderizar
-                cont.innerHTML = `
-                    <div class="eq-detail-head">
-                        <img class="eq-detail-flag" src="${equipo.banderaUrl || ''}" alt="${equipo.nombre}" onerror="this.style.display='none'" />
-                        <div><div class="eq-detail-name">${XSS.s(equipo.nombre)}</div><div class="eq-detail-sub">Grupo ${equipo.grupo}</div></div>
-                    </div>
-                    <div class="eq-detail-body">
-                        <div style="font-family:var(--disp);font-size:16px;font-weight:800;margin-bottom:12px">Plantilla</div>
-                        ${jugadores.length > 0 ? this.jugadoresHTML(jugadores) : '<div class="empty">Sin información</div>'}
-                    </div>`;
-            },
-
-            jugadoresHTML(jugadores) {
-                const orden = ['PORTERO', 'DEFENSA', 'MEDIOCAMPO', 'DELANTERO'];
-                const grupos = {};
-                jugadores.forEach(j => { (grupos[j.posicion] = grupos[j.posicion] || []).push(j); });
-                return orden.filter(pos => grupos[pos]?.length).map(pos => {
-                    const info = Fmt.posicionJugador(pos);
-                    return `
-                        <div style="margin-bottom:12px">
-                            <div style="font-size:10px;font-weight:700;color:var(--tmut);text-transform:uppercase;margin-bottom:6px">${pos}</div>
-                            ${grupos[pos].sort((a,b) => a.nroCamiseta - b.nroCamiseta).map(j => `
-                                <div class="j-row" style="padding:6px;border-bottom:1px solid #eee">
-                                    <span style="width:25px;font-weight:bold">${j.nroCamiseta}</span>
-                                    <span>${XSS.s(j.nombre)} ${j.esEstrella ? '⭐' : ''}</span>
-                                </div>`).join('')}
-                        </div>`;
-                }).join('');
+                return;
             }
+
+            document.getElementById('sel-out').innerHTML = '<div class="spinner"></div>';
+
+            // Cargar partidos y equipos en paralelo si hace falta
+            const needsPartidos = !State.partidos.length;
+            const calls = [ApiEquipos.getAll()];
+            if (needsPartidos) calls.push(ApiPartidos.getAll());
+
+            const [r, rp] = await Promise.all(calls);
+
+            if (needsPartidos && rp?.ok) State.partidos = rp.data || [];
+
+            if (!r?.ok || !r.data) {
+                document.getElementById('sel-out').innerHTML =
+                    '<div class="empty">⚠ No pudimos cargar los equipos.</div>';
+                return;
+            }
+
+            State.equipos = r.data;
+            Views.Selecciones.all = r.data;
+            Views.Selecciones.render(Views.Selecciones.all);
         },
+
+        render(equipos) {
+            if (!equipos.length) {
+                document.getElementById('sel-out').innerHTML = '<div class="empty">Sin equipos cargados</div>';
+                return;
+            }
+
+            const grupos = {};
+            equipos.forEach(e => { (grupos[e.grupo] = grupos[e.grupo] || []).push(e); });
+
+            const cards = Object.keys(grupos).sort().map(g => `
+                <div class="grp-section">
+                    <div class="grp-label">
+                        <span class="grp-pill">GRUPO ${g}</span>
+                        <div class="grp-line"></div>
+                    </div>
+                    <div class="equipos-grid">
+                        ${grupos[g].map(Views.Selecciones.equipoCardHTML).join('')}
+                    </div>
+                </div>`).join('');
+
+            document.getElementById('sel-out').innerHTML = `
+                <div class="equipos-search">
+                    <span class="ico">🔍</span>
+                    <input type="text" placeholder="Buscar selección..."
+                           oninput="Views.Selecciones.search(this.value)" />
+                </div>
+                <div id="sel-grupos">${cards}</div>`;
+        },
+
+        equipoCardHTML(e) {
+            const stats = Views.Selecciones.calcStats(e.nombre);
+            return `
+                <div class="equipo-card" onclick="Views.Selecciones.showDetail('${e.nombre}')">
+                    <div class="eq-top">
+                        <img class="eq-flag" src="${e.banderaUrl || ''}" alt="${e.nombre}"
+                             onerror="this.style.visibility='hidden'" />
+                        <div>
+                            <div class="eq-name">${XSS.s(e.nombre)}</div>
+                            <div class="eq-grp">Grupo ${e.grupo}</div>
+                        </div>
+                    </div>
+                    <div class="eq-stats">
+                        <div class="eq-stat"><div class="eq-stat-v">${stats.pj}</div><div class="eq-stat-l">PJ</div></div>
+                        <div class="eq-stat"><div class="eq-stat-v">${stats.pts}</div><div class="eq-stat-l">PTS</div></div>
+                        <div class="eq-stat"><div class="eq-stat-v">${stats.gf}</div><div class="eq-stat-l">GF</div></div>
+                        <div class="eq-stat"><div class="eq-stat-v">${stats.gc}</div><div class="eq-stat-l">GC</div></div>
+                    </div>
+                </div>`;
+        },
+
+        calcStats(nombre) {
+            const stats = { pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0, pts: 0 };
+            State.partidos
+                .filter(p => p.estado === 'FINALIZADO' &&
+                    (p.equipoLocal === nombre || p.equipoVisitante === nombre))
+                .forEach(p => {
+                    const esLocal = p.equipoLocal === nombre;
+                    const gf = esLocal ? p.golesLocal : p.golesVisitante;
+                    const gc = esLocal ? p.golesVisitante : p.golesLocal;
+                    stats.pj++;
+                    stats.gf += (gf || 0);
+                    stats.gc += (gc || 0);
+                    if (gf > gc)      { stats.pg++; stats.pts += 3; }
+                    else if (gf === gc){ stats.pe++; stats.pts += 1; }
+                    else              { stats.pp++; }
+                });
+            return stats;
+        },
+
+        search(q) {
+            const txt     = q.toLowerCase();
+            const filtrado = Views.Selecciones.all.filter(e =>
+                e.nombre.toLowerCase().includes(txt) || e.grupo.toLowerCase().includes(txt)
+            );
+            const grupos = {};
+            filtrado.forEach(e => { (grupos[e.grupo] = grupos[e.grupo] || []).push(e); });
+            document.getElementById('sel-grupos').innerHTML =
+                Object.keys(grupos).sort().map(g => `
+                <div class="grp-section">
+                    <div class="grp-label"><span class="grp-pill">GRUPO ${g}</span><div class="grp-line"></div></div>
+                    <div class="equipos-grid">${grupos[g].map(Views.Selecciones.equipoCardHTML).join('')}</div>
+                </div>`).join('') || '<div class="empty">Sin resultados</div>';
+        },
+
+        async showDetail(nombre) {
+            const equipo = Views.Selecciones.all.find(e => e.nombre === nombre);
+            if (!equipo) return;
+
+            const cont = document.getElementById('sel-detail-content');
+            cont.innerHTML = '<div class="spinner"></div>';
+            Modal.open('modal-sel-detail');
+
+            const rj       = await ApiEquipos.getJugadores(equipo.id);
+            const jugadores = (rj?.ok && Array.isArray(rj.data)) ? rj.data : [];
+
+            cont.innerHTML = `
+                <div class="eq-detail-head">
+                    <img class="eq-detail-flag" src="${equipo.banderaUrl || ''}" alt="${equipo.nombre}" onerror="this.style.display='none'" />
+                    <div>
+                        <div class="eq-detail-name">${XSS.s(equipo.nombre)}</div>
+                        <div class="eq-detail-sub">Grupo ${equipo.grupo}</div>
+                    </div>
+                </div>
+                <div class="eq-detail-body">
+                    <div style="font-family:var(--disp);font-size:16px;font-weight:800;margin-bottom:12px">Plantilla</div>
+                    ${jugadores.length > 0 ? Views.Selecciones.jugadoresHTML(jugadores) : '<div class="empty">Sin información</div>'}
+                </div>`;
+        },
+
+        jugadoresHTML(jugadores) {
+            const orden  = ['PORTERO', 'DEFENSA', 'MEDIOCAMPO', 'DELANTERO'];
+            const grupos = {};
+            jugadores.forEach(j => { (grupos[j.posicion] = grupos[j.posicion] || []).push(j); });
+            return orden.filter(pos => grupos[pos]?.length).map(pos => `
+                <div style="margin-bottom:12px">
+                    <div style="font-size:10px;font-weight:700;color:var(--tmut);text-transform:uppercase;margin-bottom:6px">${pos}</div>
+                    ${grupos[pos].sort((a, b) => a.nroCamiseta - b.nroCamiseta).map(j => `
+                        <div class="j-row" style="padding:6px;border-bottom:1px solid #eee">
+                            <span style="width:25px;font-weight:bold">${j.nroCamiseta}</span>
+                            <span>${XSS.s(j.nombre)} ${j.esEstrella ? '⭐' : ''}</span>
+                        </div>`).join('')}
+                </div>`).join('');
+        },
+    },
 
     /* ═══════════════════════════════════════════════
        MI PERFIL
     ═══════════════════════════════════════════════ */
     Perfil: {
         async load() {
-            const out = document.getElementById('perfil-out');
+            const out  = document.getElementById('perfil-out');
             out.innerHTML = '<div class="spinner"></div>';
 
             const user = State.user;
             if (!user) return;
 
-            // Stats del usuario (desde misPreds)
+            // Asegurar datos disponibles — usar los precargados si existen
+            const needsPartidos = !State.partidos.length;
+            const needsPreds    = !Object.keys(State.misPreds).length;
+
+            if (needsPartidos || needsPreds) {
+                const calls = [];
+                if (needsPartidos) calls.push(ApiPartidos.getAll());
+                if (needsPreds)    calls.push(ApiPredicciones.getMias());
+
+                const results = await Promise.all(calls);
+                let idx = 0;
+                if (needsPartidos && results[idx]?.ok) {
+                    State.partidos = results[idx].data || [];
+                    idx++;
+                }
+                if (needsPreds && results[idx]?.ok) {
+                    State.misPreds = {};
+                    (results[idx].data || []).forEach(p => { State.misPreds[p.partidoId] = p; });
+                }
+            }
+
             const vals   = Object.values(State.misPreds);
             const pts    = vals.reduce((s, p) => s + (p.puntosObtenidos || 0), 0);
             const plenos = vals.filter(p => p.puntosObtenidos === 3).length;
             const tend   = vals.filter(p => p.puntosObtenidos === 1).length;
             const fallos = vals.filter(p => p.puntosObtenidos === 0).length;
 
-            // Mi posición en el ranking
-            const mio    = State.ranking.find(u => u.email === user.email);
-            const pos    = mio ? `#${mio.posicion}` : '—';
-
-            // Si no tenemos predicciones cargadas, las pedimos
-            if (!vals.length) await Views.Partidos.load();
+            const mio = State.ranking.find(u => u.email === user.email);
+            const pos = mio ? `#${mio.posicion}` : '—';
 
             const predsOrdenadas = vals
                 .filter(p => {
@@ -886,9 +912,7 @@ const Views = {
                     if (!partido) return '';
                     return `
               <div class="pred-row">
-                <div class="pred-teams">
-                  ${partido.equipoLocal} vs. ${partido.equipoVisitante}
-                </div>
+                <div class="pred-teams">${partido.equipoLocal} vs. ${partido.equipoVisitante}</div>
                 <span class="pred-score" style="white-space:nowrap">
                   Real: ${partido.golesLocal ?? '?'}–${partido.golesVisitante ?? '?'}
                 </span>
@@ -901,7 +925,6 @@ const Views = {
                 : '<div style="color:var(--tmut);font-size:13px">Aún no tenés predicciones finalizadas</div>';
 
             out.innerHTML = `
-        <!-- Header de perfil -->
         <div class="perfil-header">
           <div class="perfil-av">${Fmt.iniciales(user.nombre)}</div>
           <div class="perfil-info">
@@ -922,36 +945,29 @@ const Views = {
           </div>
         </div>
 
-        <!-- Stats detalladas -->
         <div class="stats-row" style="margin-bottom:20px">
           <div class="scard">
-            <div class="slabel">Puntos totales</div>
-            <div class="sval">${pts}</div>
+            <div class="slabel">Puntos totales</div><div class="sval">${pts}</div>
             <div class="ssub">acumulados</div>
           </div>
           <div class="scard accent-amber">
-            <div class="slabel">Plenos 🎯</div>
-            <div class="sval amber">${plenos}</div>
+            <div class="slabel">Plenos 🎯</div><div class="sval amber">${plenos}</div>
             <div class="ssub">resultado exacto</div>
           </div>
           <div class="scard accent-green">
-            <div class="slabel">Tendencias 👍</div>
-            <div class="sval green">${tend}</div>
+            <div class="slabel">Tendencias 👍</div><div class="sval green">${tend}</div>
             <div class="ssub">ganador/empate</div>
           </div>
           <div class="scard">
-            <div class="slabel">Fallos ❌</div>
-            <div class="sval navy">${fallos}</div>
+            <div class="slabel">Fallos ❌</div><div class="sval navy">${fallos}</div>
             <div class="ssub">sin acierto</div>
           </div>
           <div class="scard">
-            <div class="slabel">Predicciones</div>
-            <div class="sval">${vals.length}</div>
+            <div class="slabel">Predicciones</div><div class="sval">${vals.length}</div>
             <div class="ssub">de ${State.partidos.length} partidos</div>
           </div>
         </div>
 
-        <!-- Historial -->
         <div class="panel" style="margin-bottom:20px">
           <div class="panel-head">
             <div class="panel-title">📋 Historial de predicciones</div>
@@ -962,7 +978,6 @@ const Views = {
           </div>
         </div>
 
-        <!-- Cambiar contraseña -->
         <div class="pass-section">
           <h3>🔑 Cambiar contraseña</h3>
           <div class="pass-grid">
@@ -978,21 +993,19 @@ const Views = {
               <label>Confirmar nueva</label>
               <input type="password" id="pass-confirm" placeholder="repetir contraseña" />
             </div>
-            <button class="btn-sec" onclick="Views.Perfil.cambiarPassword()">
-              Actualizar
-            </button>
+            <button class="btn-sec" onclick="Views.Perfil.cambiarPassword()">Actualizar</button>
           </div>
         </div>`;
         },
 
         async cambiarPassword() {
-            const actual   = document.getElementById('pass-actual').value;
-            const nueva    = document.getElementById('pass-nueva').value;
-            const confirm  = document.getElementById('pass-confirm').value;
+            const actual  = document.getElementById('pass-actual').value;
+            const nueva   = document.getElementById('pass-nueva').value;
+            const confirm = document.getElementById('pass-confirm').value;
 
             if (!actual || !nueva || !confirm) return Toast.err('Completá todos los campos');
-            if (nueva.length < 6) return Toast.err('La nueva contraseña debe tener al menos 6 caracteres');
-            if (nueva !== confirm) return Toast.err('Las contraseñas no coinciden');
+            if (nueva.length < 6)              return Toast.err('La nueva contraseña debe tener al menos 6 caracteres');
+            if (nueva !== confirm)             return Toast.err('Las contraseñas no coinciden');
 
             const r = await ApiPerfil.cambiarPassword(actual, nueva);
             if (!r?.ok) return Toast.err(r?.data?.error || 'Error al cambiar la contraseña');
@@ -1021,7 +1034,6 @@ const Views = {
             if (tab === 'r') Views.Admin.loadResultados();
         },
 
-        /* ── Usuarios ── */
         async loadUsuarios() {
             document.getElementById('apu').innerHTML = '<div class="spinner"></div>';
             const r = await ApiAdmin.getUsuarios();
@@ -1034,12 +1046,10 @@ const Views = {
                 return;
             }
 
-            // Barra de resumen rápido
             const totalPts   = users.reduce((s, u) => s + u.puntosTotales, 0);
             const totalPreds = users.reduce((s, u) => s + u.partidosPredichos, 0);
 
             document.getElementById('apu').innerHTML = `
-        <!-- Resumen -->
         <div class="stats-row" style="margin-bottom:20px">
           <div class="scard">
             <div class="slabel">Participantes</div>
@@ -1057,19 +1067,17 @@ const Views = {
             <div class="ssub">acumulados</div>
           </div>
         </div>
-
-        <!-- Cards de usuarios -->
         <div class="agrid">
           ${users.map(Views.Admin.userCardHTML).join('')}
         </div>`;
         },
 
         userCardHTML(u) {
-            const ini  = Fmt.iniciales(u.nombre);
-            const adm  = u.rol === 'ROLE_ADMIN';
-            const area = u.area ? XSS.s(u.area) : null;
-            const nom  = XSS.s(u.nombre);
-            const nomJ = nom.replace(/'/g, "\\'");
+            const ini   = Fmt.iniciales(u.nombre);
+            const adm   = u.rol === 'ROLE_ADMIN';
+            const area  = u.area ? XSS.s(u.area) : null;
+            const nom   = XSS.s(u.nombre);
+            const nomJ  = nom.replace(/'/g, "\\'");
             const areaJ = (area || '').replace(/'/g, "\\'");
             return `
         <div class="ucard">
@@ -1122,27 +1130,22 @@ const Views = {
 
         openArea(id, nombre, areaActual) {
             State.areaId = id;
-            document.getElementById('marea-sub').textContent =
-                `Área o sector para: ${nombre}`;
+            document.getElementById('marea-sub').textContent = `Área o sector para: ${nombre}`;
             document.getElementById('marea-input').value = areaActual || '';
             Modal.open('modal-area');
-            // Foco automático en el input
             setTimeout(() => document.getElementById('marea-input').focus(), 100);
         },
 
         async confirmArea() {
             const area = document.getElementById('marea-input').value.trim();
-            const r = await ApiAdmin.actualizarArea(State.areaId, area || null);
+            const r    = await ApiAdmin.actualizarArea(State.areaId, area || null);
             if (!r?.ok) return Toast.err('Error al actualizar el área');
             Modal.close();
             Toast.ok(`✅ Área ${area ? `"${area}" asignada` : 'removida'} correctamente`);
-            // Refrescar la lista de usuarios
             Views.Admin.loadUsuarios();
         },
 
-        /* ── Dashboard de usuario individual ── */
         async verDashboard(id, nombre) {
-            // Mostrar modal con spinner mientras carga
             document.getElementById('mdash-title').textContent = nombre;
             document.getElementById('mdash-body').innerHTML    = '<div class="spinner"></div>';
             Modal.open('modal-dashboard');
@@ -1154,7 +1157,7 @@ const Views = {
                 return;
             }
 
-            const u = r.data;
+            const u        = r.data;
             const predsHTML = u.predicciones?.length
                 ? u.predicciones.map(p => {
                     const partido = State.partidos.find(pt => pt.id === p.partidoId);
@@ -1186,19 +1189,15 @@ const Views = {
         <div class="pred-list">${predsHTML}</div>`;
         },
 
-        /* ── Carga de resultados ── */
         async loadResultados() {
             document.getElementById('apr').innerHTML = '<div class="spinner"></div>';
 
-            // Traer EN_JUEGO primero, sino PENDIENTE
             let r  = await ApiPartidos.getAll('EN_JUEGO');
-            // Validamos explícitamente que r.data sea un Array
             let ps = (r?.ok && Array.isArray(r?.data)) ? r.data : [];
-            
+
             if (!ps.length) {
                 r  = await ApiPartidos.getAll('PENDIENTE');
-                let pendingData = (r?.ok && Array.isArray(r?.data)) ? r.data : [];
-                ps = pendingData.slice(0, 24);
+                ps = (r?.ok && Array.isArray(r?.data)) ? r.data.slice(0, 24) : [];
             }
 
             if (!ps.length) {
@@ -1215,8 +1214,8 @@ const Views = {
         </div>
         <div class="rlist">
           ${ps.map(p => {
-                const d = Fmt.fechaCorta(p.fechaHora);
-                return `
+              const d = Fmt.fechaCorta(p.fechaHora);
+              return `
               <div class="rentry">
                 <div style="flex:1;min-width:180px">
                   <div class="rteams">${p.equipoLocal} vs. ${p.equipoVisitante}</div>
@@ -1227,23 +1226,19 @@ const Views = {
                   </div>
                 </div>
                 <div class="rinputs">
-                  <img src="${p.banderaLocal}" style="width:22px;height:15px;
-                       border-radius:2px;object-fit:cover"
+                  <img src="${p.banderaLocal}" style="width:22px;height:15px;border-radius:2px;object-fit:cover"
                        onerror="this.style.display='none'" />
-                  <input type="number" min="0" max="20" class="ri"
-                         id="rl-${p.id}" placeholder="0" />
+                  <input type="number" min="0" max="20" class="ri" id="rl-${p.id}" placeholder="0" />
                   <span style="color:var(--tmut)">–</span>
-                  <input type="number" min="0" max="20" class="ri"
-                         id="rv-${p.id}" placeholder="0" />
-                  <img src="${p.banderaVisitante}" style="width:22px;height:15px;
-                       border-radius:2px;object-fit:cover"
+                  <input type="number" min="0" max="20" class="ri" id="rv-${p.id}" placeholder="0" />
+                  <img src="${p.banderaVisitante}" style="width:22px;height:15px;border-radius:2px;object-fit:cover"
                        onerror="this.style.display='none'" />
                 </div>
                 <button class="btnok" onclick="Views.Admin.confirmarResultado(${p.id})">
                   ✓ Confirmar
                 </button>
               </div>`;
-            }).join('')}
+          }).join('')}
         </div>`;
         },
 
@@ -1258,9 +1253,13 @@ const Views = {
             Toast.ok('✅ Resultado cargado · Puntos calculados automáticamente');
             Views.Admin.loadResultados();
 
-            // Refrescar partidos en background para mantener datos actualizados
-            ApiPartidos.getAll().then(rp => {
+            // Refrescar partidos, ranking y predicciones en paralelo
+            Promise.all([
+                ApiPartidos.getAll(),
+                ApiRanking.get(),
+            ]).then(([rp, rr]) => {
                 if (rp?.ok) State.partidos = rp.data || [];
+                if (rr?.ok) State.ranking  = rr.data || [];
             });
         },
     },
