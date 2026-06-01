@@ -165,6 +165,8 @@ const Auth = {
     },
 };
 
+const MINUTOS_CIERRE = 15;
+
 const Fmt = {
     fecha(iso) {
         return new Date(iso).toLocaleString('es-AR', {
@@ -205,15 +207,47 @@ const Fmt = {
     flag(url, nom) {
         return `<img class="flag" src="${XSS.s(url)}" alt="${XSS.s(nom)}" onerror="this.style.visibility='hidden'" />`;
     },
-    badge(est, blq) {
+    badge(est, blq, fechaHora) {
         if (est === 'EN_JUEGO')   return '<span class="badge b-live">En vivo</span>';
         if (est === 'FINALIZADO') return '<span class="badge b-done">Finalizado</span>';
-        if (blq)                  return '<span class="badge b-lock">🔒 Cerrado</span>';
+        if (blq) {
+            // Si está bloqueado pero sigue PENDIENTE, es el cierre por tiempo
+            if (est === 'PENDIENTE') {
+                const mins = Fmt.minutosParaCierre(fechaHora);
+                const label = mins > 0
+                    ? `🔒 Cierra en ${mins} min`
+                    : '🔒 Cerrado';
+                return `<span class="badge b-lock">${label}</span>`;
+            }
+            return '<span class="badge b-lock">🔒 Cerrado</span>';
+        }
         return '<span class="badge b-open">Abierto</span>';
     },
     goles(val) {
         const n = parseInt(val);
         return (!isNaN(n) && n >= 0 && n <= 20) ? n : '?';
+    },
+
+    /**
+     * Espejo del backend: devuelve true si deben bloquearse las predicciones.
+     * Un partido PENDIENTE se bloquea MINUTOS_CIERRE min antes de su fechaHora.
+     */
+    estaBloquedoPorTiempo(estado, fechaHora) {
+        if (estado && estado !== 'PENDIENTE') return true;
+        if (!fechaHora) return false;
+        const inicio = new Date(fechaHora).getTime();
+        const ahora  = Date.now();
+        return ahora >= (inicio - MINUTOS_CIERRE * 60 * 1000);
+    },
+
+    /**
+     * Minutos enteros que faltan para el cierre (puede ser negativo si ya cerró).
+     */
+    minutosParaCierre(fechaHora) {
+        const inicio  = new Date(fechaHora).getTime();
+        const cierre  = inicio - MINUTOS_CIERRE * 60 * 1000;
+        const restMs  = cierre - Date.now();
+        return Math.ceil(restMs / 60000);
     },
 };
 

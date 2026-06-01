@@ -373,11 +373,14 @@ const Views = {
        FIXTURE — PARTIDOS
     ═══════════════════════════════════════════════ */
     Partidos: {
+        _ticker: null, // setInterval que vigila cierres próximos
+
         async load() {
             // Si ya tenemos datos del preload de Auth.boot, renderizamos inmediatamente
             if (State.partidos.length > 0) {
                 Views.Partidos.refreshStats();
                 Views.Partidos.render();
+                Views.Partidos._startTicker();
                 // Actualizamos en segundo plano silenciosamente
                 Views.Partidos._refreshBackground();
                 return;
@@ -398,6 +401,41 @@ const Views = {
 
             Views.Partidos.refreshStats();
             Views.Partidos.render();
+            Views.Partidos._startTicker();
+        },
+
+        /**
+         * Ticker que corre cada 30 segundos mientras la vista está activa.
+         * Re-renderiza SOLO si algún partido PENDIENTE está dentro de la
+         * ventana de cierre (entre -1 min y +MINUTOS_CIERRE+1 min del inicio),
+         * para reflejar el bloqueo sin esperar al próximo refresh de background.
+         */
+        _startTicker() {
+            Views.Partidos._stopTicker();
+            Views.Partidos._ticker = setInterval(() => {
+                // Solo actuar si la vista de partidos está visible
+                if (Router.current !== 'partidos') {
+                    Views.Partidos._stopTicker();
+                    return;
+                }
+                const ahora = Date.now();
+                const ventana = (MINUTOS_CIERRE + 2) * 60 * 1000;
+                const hayProximos = State.partidos.some(p => {
+                    if (p.estado !== 'PENDIENTE') return false;
+                    const inicio = new Date(p.fechaHora).getTime();
+                    const diff   = inicio - ahora;
+                    // Partido dentro de la ventana de cierre o recién cerrado
+                    return diff >= -60_000 && diff <= ventana;
+                });
+                if (hayProximos) Views.Partidos.render();
+            }, 30_000);
+        },
+
+        _stopTicker() {
+            if (Views.Partidos._ticker) {
+                clearInterval(Views.Partidos._ticker);
+                Views.Partidos._ticker = null;
+            }
         },
 
         async _refreshBackground() {
@@ -468,7 +506,9 @@ const Views = {
         cardHTML(p) {
             const m  = State.misPreds[p.id];
             const pd = State.pending[p.id];
-            const lk = p.prediccionBloqueada;
+            // Recalcular bloqueo en el cliente para reflejar el cierre por tiempo
+            // sin depender de que el servidor haya actualizado prediccionBloqueada
+            const lk = Fmt.estaBloquedoPorTiempo(p.estado, p.fechaHora);
 
             let center = '';
             if (p.estado === 'FINALIZADO') {
@@ -538,7 +578,7 @@ const Views = {
         <div class="mcard ${lk ? 'locked' : ''}">
           <div class="mcard-top">
             <span class="mdate">${Fmt.fecha(p.fechaHora)}</span>
-            ${Fmt.badge(p.estado, p.prediccionBloqueada)}
+            ${Fmt.badge(p.estado, lk, p.fechaHora)}
           </div>
           <div class="mteams">
             <div class="team">
