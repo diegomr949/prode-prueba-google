@@ -207,8 +207,6 @@ const Views = {
           { color: '#6b21a8', ico: '🔍', titulo: 'TRANSPARENCIA', items: [
             ['📡','Los resultados reales los carga únicamente el administrador del sistema.'],
             ['⚡','El cálculo de puntos es automático e inmediato al cargar el resultado.'],
-            ['👀','Una vez iniciado el partido, cualquier participante puede ver los pronósticos de todos.'],
-            ['🔐','Las predicciones son privadas hasta el inicio del partido para garantizar la equidad.'],
             ['⚠️','Ante errores de carga, el administrador puede corregir un resultado. El sistema recalcula los puntos automáticamente.'],
           ]},
           { color: '#0f766e', ico: '🗓️', titulo: 'FASES DEL TORNEO', items: [
