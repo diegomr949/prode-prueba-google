@@ -254,8 +254,11 @@
     <div class="msub" id="mresub">Nueva contraseña para el usuario</div>
     <div class="field">
       <label>Nueva contraseña</label>
+      <div class="pass-wrap">
       <input type="text" id="mpass" placeholder="Mínimo 6 caracteres"
              onkeydown="if(event.key==='Enter') Views.Admin.confirmReset()" />
+             <button type="button" class="pass-toggle" onclick="togglePass('lp',this)" tabindex="-1">👁️</button>
+      </div>
     </div>
     <div class="mact">
       <button class="btncancel" onclick="Modal.close()">Cancelar</button>
