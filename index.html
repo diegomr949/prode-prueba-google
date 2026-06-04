@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Prode Mundial 2026 — CPCE Mendoza</title>
 
-  <meta name="api-base" content="https://script.google.com/macros/s/AKfycbxqyd3wkHFscN7Pp5ES-XmfmzGsXBu0l1EVazo1gfTp7ECgz8Rs9mS3Rvcrd4mKa92Mpw/exec" />
+  <meta name="api-base" content="https://script.google.com/macros/s/AKfycbzjRW8UYDWY2dWteTa4EeSPTZW4Au9c97DyxwAZtGf4XD72J-kSWE9ngRB6V1zZlewQaQ/exec" />
   
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏆</text></svg>" />
 
@@ -43,10 +43,13 @@
         <input type="email" id="le" placeholder="usuario@cpce.org.ar" autofocus />
       </div>
       <div class="field">
-        <label>Contraseña</label>
-        <input type="password" id="lp" placeholder="••••••••"
-               onkeydown="if(event.key==='Enter') Views.Auth.doLogin()" />
-      </div>
+  <label>Contraseña</label>
+  <div class="pass-wrap">
+    <input type="password" id="lp" placeholder="••••••••"
+           onkeydown="if(event.key==='Enter') Views.Auth.doLogin()" />
+    <button type="button" class="pass-toggle" onclick="togglePass('lp',this)" tabindex="-1">👁️</button>
+  </div>
+</div>
       <button class="btn-p" id="bl" onclick="Views.Auth.doLogin()">Ingresar</button>
     </div>
     <div class="lfoot">
@@ -318,6 +321,13 @@
     */
     Auth.restore();
   });
+  function togglePass(id, btn) {
+  const input = document.getElementById(id);
+  if (!input) return;
+  const mostrar = input.type === 'password';
+  input.type    = mostrar ? 'text' : 'password';
+  btn.textContent = mostrar ? '🙈' : '👁️';
+}
 </script>
 
 </body>
