@@ -66,8 +66,7 @@ async function http(path, method = 'GET', body = null, retries = MAX_RETRIES) {
 
     const options = { method: fetchMethod, signal: ctrl.signal };
     if (isWrite) {
-      options.headers = { 'Content-Type': 'application/json' };
-      options.body    = JSON.stringify({ originalMethod: method, body });
+        options.body = JSON.stringify({ originalMethod: method, body });
     }
 
     try {
